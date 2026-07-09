@@ -336,3 +336,25 @@ No está lejos de arrancar (1 fix de CORS y verificar los IDs de modelo y la app
 - **[baja/falta-feature/S]** (ops) No hay update-app: al cambiar el codigo no se reconstruye la web ni se reinician los servicios
   - `scripts/make-mac-app.sh:1`
   - Arreglo: Script scripts/update-app.sh: git pull/uv sync + pnpm build en apps/web, luego 'launchctl kickstart -k gui/$(id -u)/io.niuro.atlas.api' y '.web' para tomar el codigo nuevo.
+
+---
+
+## Resuelto (2026-07-09, misma sesión)
+
+Alcance ejecutado: "dejar la app perfecta" (bugs + scoring + robustez + MVP visible + tests), sin los bloques 5-7. Todo commiteado, con CI/tests en verde y desplegado en la .app de Tomás.
+
+**Bugs y app-breaking:** CORS 3005 (verificado E2E, origin 3005 responde 200), scope Calendars.Read, resiliencia del batch de agentes + kill del subproceso, los 6 factores de scoring cableados (pareto, context, carga, frog, eisenhower persistido exacto), NOTIFY del sync, Seguimiento desbloquea waiting, ventana de calendario re-basalizada, triage con precondición + merge + due_date 422, snooze saca de Hoy.
+
+**Robustez:** reintentos con Retry-After/backoff en conectores, /health verifica DB, WebSocket reconecta (front y back), PUT scoring valida y escribe atómico, arranque robusto que asegura colima+DB, backup diario de Postgres (verificado), quiet hours, notificaciones nativas, aviso al 80% del presupuesto, índice hnsw.
+
+**MVP visible:** POST /api/sync (Cmd+Shift+S), GET /api/budget, GET /api/search (FTS), reauth, seed de clientes/proyectos, tema claro/oscuro + fuentes reales, atajos (/, 1-5, C, sin hijack de 'g'), error handling de sugerencias, update-app.sh, pre-commit gitleaks, chequeo de FileVault, puerto 3005 unificado.
+
+**Tests:** regresión de reconstrucción de eisenhower y de fallo de backend que no revienta el batch.
+
+### Deferido a conciencia (bajo impacto o depende de credenciales/CRM)
+- Detalle de proyectos/clientes con último contacto y deals: necesita CRM (bloque 5).
+- Búsqueda de tareas y voz dentro del command palette; drawer responsive móvil.
+- Rate limiter dedicado por conector (los retries/backoff cubren el riesgo real).
+- health() con contador de 2 fallos: cubierto por la notificación + status error en /sources.
+- Borrado de RawItem en @removed (se saltan; bajo impacto).
+- Multi-usuario (single-tenant por diseño), prompt caching (el backend por defecto es CLI, no cachea).
