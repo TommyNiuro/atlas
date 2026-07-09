@@ -46,6 +46,18 @@ tasks:
     cmds:
       - uv run python -m atlas.db.seed
 
+  auth-outlook:
+    desc: Device code flow de Outlook (pega el codigo en el navegador)
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync outlook_mail --auth
+
+  sync:
+    desc: Sync manual de Outlook Mail
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync outlook_mail
+
   logs:
     cmds:
       - docker compose -f infra/docker-compose.yml logs -f
