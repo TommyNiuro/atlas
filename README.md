@@ -39,7 +39,7 @@ Local-first y open source: tus datos viven en tu computador, nada se sube a serv
 ```bash
 brew install uv pnpm go-task colima docker
 git clone https://github.com/TommyNiuro/atlas.git && cd atlas
-python3 scripts/setup.py     # detecta el SO, llave Fernet al Keychain, deps
+python3 scripts/setup.py     # detecta el SO, llave Fernet al Keychain, deps (agentes: usa tu login de Claude Code, sin API key)
 task dev                     # stack completo: web en :3000, api en :8000
 ```
 

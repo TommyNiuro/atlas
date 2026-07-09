@@ -22,6 +22,13 @@ REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 MODEL_FAST = os.environ.get("ATLAS_MODEL_FAST", "claude-haiku-4-5")
 MODEL_SMART = os.environ.get("ATLAS_MODEL_SMART", "claude-sonnet-5")
 
+# Backend de LLM: "cli" usa el CLI de Claude Code con la suscripcion (Max/Pro)
+# del usuario, sin API key; "api" usa ANTHROPIC_API_KEY. Default: cli si no hay key.
+LLM_BACKEND = os.environ.get(
+    "ATLAS_LLM_BACKEND", "api" if os.environ.get("ANTHROPIC_API_KEY") else "cli"
+)
+CLAUDE_BIN = os.environ.get("CLAUDE_BIN", "")
+
 # Presupuesto diario de tokens (regla dura 4 del runtime)
 TOKEN_BUDGET_INPUT_DAILY = int(os.environ.get("TOKEN_BUDGET_INPUT_DAILY", "500000"))
 TOKEN_BUDGET_OUTPUT_DAILY = int(os.environ.get("TOKEN_BUDGET_OUTPUT_DAILY", "80000"))
