@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Atlas",
+  "version": "0.5.0",
+  "identifier": "io.niuro.atlas.desktop",
+  "build": {
+    "frontendDist": "frontend"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Atlas",
+        "url": "index.html",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 960,
+        "minHeight": 600,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "publisher": "Tomás Ffrench-Davis",
+    "copyright": "© 2026 Tomás Ffrench-Davis",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "Productivity",
+    "shortDescription": "Personal Operating System local-first",
+    "longDescription": "Atlas centraliza tus tareas desde tus canales reales con agentes Claude. Ventana nativa (Tauri) sobre los servicios locales."
+  }
+}
