@@ -39,6 +39,7 @@ def es_ruido(msg: dict) -> bool:
 @register
 class OutlookMailConnector:
     kind = "outlook_mail"
+    SCOPES = ["Mail.Read"]  # la subclase de calendario lo sobreescribe a Calendars.Read
 
     def __init__(self, auth_meta: dict | None = None):
         self.auth_meta = auth_meta or {}
@@ -55,7 +56,7 @@ class OutlookMailConnector:
     async def authenticate(self) -> dict:
         cache = msal.SerializableTokenCache()
         app = self._msal_app(cache)
-        flow = app.initiate_device_flow(scopes=SCOPES)
+        flow = app.initiate_device_flow(scopes=self.SCOPES)
         if "user_code" not in flow:
             raise RuntimeError(f"Device flow fallo: {flow}")
         print(f"\n{flow['message']}\n")  # imprime el codigo para pegar en el navegador
@@ -70,7 +71,7 @@ class OutlookMailConnector:
             cache.deserialize(tc)
         app = self._msal_app(cache)
         accounts = app.get_accounts()
-        result = app.acquire_token_silent(SCOPES, account=accounts[0] if accounts else None)
+        result = app.acquire_token_silent(self.SCOPES, account=accounts[0] if accounts else None)
         if not result or "access_token" not in result:
             raise RuntimeError("Token vencido: corre `task auth-outlook` de nuevo")
         if cache.has_state_changed:

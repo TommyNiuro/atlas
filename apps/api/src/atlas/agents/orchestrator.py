@@ -8,7 +8,7 @@ import asyncio
 import logging
 from datetime import date, datetime, timezone
 
-from sqlalchemy import select, text
+from sqlalchemy import func, select, text
 
 from atlas.core import config
 from atlas.agents import runtime
@@ -149,6 +149,7 @@ async def procesar_pendientes() -> dict:
                     requester_factor=0.6,
                     urgente=senales.urgente,
                     importante=senales.importante,
+                    estrategico=(clasif.tipo == "estrategico"),
                     estimated_minutes=cand.estimated_minutes,
                 )
                 score, breakdown = compute_score(facts)
@@ -172,46 +173,90 @@ async def procesar_pendientes() -> dict:
             for tid in (detectadas.task_ids_respondidas if detectadas else []):
                 t = next((w for w in waiting if str(w.id) == tid), None)
                 if t:
+                    t.status = "open"  # respuesta recibida: se desbloquea
                     session.add(TaskEvent(task_id=t.id, user_id=t.user_id,
                                           event="status_change",
-                                          detail={"detalle": "respuesta detectada"}))
+                                          detail={"de": "waiting", "a": "open",
+                                                  "detalle": "respuesta detectada"}))
 
         await session.commit()
         await rescore_abiertas(session)
+        if stats["tareas"] + stats["sugeridas"] > 0:
+            # empuja las tareas del sync al dashboard en vivo (mismo canal que el router)
+            await session.execute(text("NOTIFY atlas_tasks, 'sync'"))
         await session.commit()
 
     return stats
 
 
 async def rescore_abiertas(session) -> None:
-    """Rescoring global determinista: corre al final de cada sync porque el
-    score decae con el tiempo. Milisegundos, cero tokens."""
-    weights = load_weights()
-    tareas = (
-        await session.scalars(
-            select(Task).where(Task.status.in_(ESTADOS_ABIERTOS))
-        )
-    ).all()
+    """Rescoring global determinista: corre al final de cada sync (el score
+    decae con el tiempo). Milisegundos, cero tokens. Reconstruye las señales
+    del Priorizador (impacto, eisenhower) desde el breakdown guardado, que es
+    exacto, y calcula el resto desde los campos de la tarea + el conjunto abierto.
+    Antes solo cableaba deadline/impacto/age: pareto, context, frog y la
+    penalidad de carga quedaban en 0 y eisenhower se corrompia (auditoría 07-09)."""
+    w_full = load_weights()
+    weights = w_full["weights"]
+    tareas = (await session.scalars(select(Task).where(Task.status.in_(ESTADOS_ABIERTOS)))).all()
+    if not tareas:
+        return
+    ahora = datetime.now(timezone.utc)
+    hoy = ahora.date()
+
+    # veces_pospuesta = eventos snooze por tarea (frog_factor)
+    snoozes = dict(
+        (
+            await session.execute(
+                select(TaskEvent.task_id, func.count())
+                .where(TaskEvent.event == "snoozed", TaskEvent.task_id.in_([t.id for t in tareas]))
+                .group_by(TaskEvent.task_id)
+            )
+        ).all()
+    )
+    # context_bonus = 2+ tareas abiertas del mismo proyecto/cliente
+    por_proj, por_cli = {}, {}
+    for t in tareas:
+        if t.project_id:
+            por_proj[t.project_id] = por_proj.get(t.project_id, 0) + 1
+        if t.client_id:
+            por_cli[t.client_id] = por_cli.get(t.client_id, 0) + 1
+    # carga del dia = minutos de tareas con vencimiento hoy (las reuniones las suma /today)
+    min_hoy = sum((t.estimated_minutes or 30) for t in tareas if t.due_date == hoy)
+    carga = min(1.0, min_hoy / (8 * 60))
+
     scored = []
     for t in tareas:
         prev = await session.get(TaskScore, t.id)
-        impacto = (prev.score_breakdown.get("impact_factor", 0) / weights["weights"]["impact_factor"]
-                   if prev and prev.score_breakdown.get("impact_factor") else 0.3)
+        bd = prev.score_breakdown if prev else {}
+        impacto = bd.get("impact_factor", 0) / weights["impact_factor"]
+        eis = round(bd.get("eisenhower_factor", 0) / weights["eisenhower_factor"], 1)
+        urgente = eis in (1.0, 0.5)
+        importante = eis in (1.0, 0.7)
         horas = None
         if t.due_date:
             horas = (datetime.combine(t.due_date, datetime.min.time(), timezone.utc)
-                     - datetime.now(timezone.utc)).total_seconds() / 3600
-        dias = (datetime.now(timezone.utc) - t.created_at).total_seconds() / 86400 if t.created_at else 0
-        facts = Facts(horas_hasta_deadline=horas, impacto=impacto, requester_factor=0.6,
-                      estimated_minutes=t.estimated_minutes, dias_abierta=dias)
-        score, breakdown = compute_score(facts, weights)
+                     - ahora).total_seconds() / 3600
+        dias = (ahora - t.created_at).total_seconds() / 86400 if t.created_at else 0
+        ctx = (por_proj.get(t.project_id, 0) if t.project_id else 0) + (
+            por_cli.get(t.client_id, 0) if t.client_id else 0
+        )
+        facts = Facts(
+            horas_hasta_deadline=horas, impacto=impacto, requester_factor=0.6,
+            urgente=urgente, importante=importante,
+            estrategico=(t.task_type == "estrategico"),
+            veces_pospuesta=snoozes.get(t.id, 0),
+            estimated_minutes=t.estimated_minutes, dias_abierta=dias,
+            tareas_mismo_contexto_hoy=ctx, carga_del_dia=carga,
+        )
+        score, breakdown = compute_score(facts, w_full)
         scored.append((t, score, breakdown, prev))
 
     scored.sort(key=lambda x: x[1], reverse=True)
     for rank, (t, score, breakdown, prev) in enumerate(scored, start=1):
         if prev:
             prev.priority_score, prev.score_breakdown, prev.rank_today = score, breakdown, rank
-            prev.computed_at = datetime.now(timezone.utc)
+            prev.computed_at = ahora
         else:
             session.add(TaskScore(task_id=t.id, user_id=t.user_id, priority_score=score,
                                   score_breakdown=breakdown, rank_today=rank))

@@ -20,7 +20,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Atlas API", version="0.5.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    # cualquier puerto de localhost (la .app corre en :3005, dev en otros); todo es local
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1):\d+",
     allow_methods=["*"],
     allow_headers=["*"],
 )

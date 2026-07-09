@@ -1,3 +1,25 @@
 
 To sign in, use a web browser to open the page https://login.microsoft.com/device and enter the code FSU4T6VX7 to authenticate.
 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/enderys/atlas/apps/api/src/atlas/connectors/sync.py", line 122, in <module>
+    main()
+  File "/Users/enderys/atlas/apps/api/src/atlas/connectors/sync.py", line 113, in main
+    asyncio.run(authenticate(kind))
+  File "/Users/enderys/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/runners.py", line 195, in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+  File "/Users/enderys/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/runners.py", line 118, in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enderys/.local/share/uv/python/cpython-3.12.13-macos-x86_64-none/lib/python3.12/asyncio/base_events.py", line 691, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Users/enderys/atlas/apps/api/src/atlas/connectors/sync.py", line 43, in authenticate
+    auth_meta = await connector.authenticate()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/enderys/atlas/apps/api/src/atlas/connectors/outlook.py", line 64, in authenticate
+    raise RuntimeError(f"Auth fallo: {result.get('error_description')}")
+RuntimeError: Auth fallo: AADSTS70016: The provided request has not yet been authorized by the user. The user must input their code. Trace ID: ebbd0837-40f9-482e-bb32-98abc46f6e02 Correlation ID: 376c99b4-345f-4dc5-84ba-5dd72a6e6168 Timestamp: 2026-07-09 18:28:45Z

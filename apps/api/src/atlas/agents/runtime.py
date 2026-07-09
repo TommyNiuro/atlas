@@ -64,7 +64,12 @@ async def _call_cli(system: str, user: str, model: str) -> tuple[str, dict]:
         stderr=asyncio.subprocess.PIPE, env=env,
     )
     prompt = f"{system}\n\n{user}"
-    out, err = await asyncio.wait_for(proc.communicate(prompt.encode()), timeout=180)
+    try:
+        out, err = await asyncio.wait_for(proc.communicate(prompt.encode()), timeout=180)
+    except asyncio.TimeoutError:
+        proc.kill()
+        await proc.wait()
+        raise
     if proc.returncode != 0:
         raise RuntimeError(f"claude CLI fallo ({proc.returncode}): {err.decode()[:300]}")
     data = json.loads(out.decode())
@@ -134,25 +139,25 @@ async def call_agent(prompt_name: str, payload: dict, schema: type[T], model: st
     )
     correccion = ""
     for intento in (1, 2):
-        if config.LLM_BACKEND == "cli":
-            text, usage = await _call_cli(system, user + correccion, model)
-            await _budget_add(usage.get("input_tokens", 0), usage.get("output_tokens", 0))
-        else:
-            client = _get_client()
-            resp = await client.messages.create(
-                model=model, max_tokens=2048, system=system,
-                messages=[{"role": "user", "content": user + correccion}],
-            )
-            await _budget_add(resp.usage.input_tokens, resp.usage.output_tokens)
-            text = next((b.text for b in resp.content if b.type == "text"), "")
+        # backend y validacion en el mismo try: un fallo del CLI (timeout,
+        # returncode, JSON malo, claude sin login) descarta SOLO esta tarea,
+        # no el batch entero. BudgetExceeded se lanza antes del loop y propaga.
         try:
+            if config.LLM_BACKEND == "cli":
+                text, usage = await _call_cli(system, user + correccion, model)
+                await _budget_add(usage.get("input_tokens", 0), usage.get("output_tokens", 0))
+            else:
+                client = _get_client()
+                resp = await client.messages.create(
+                    model=model, max_tokens=2048, system=system,
+                    messages=[{"role": "user", "content": user + correccion}],
+                )
+                await _budget_add(resp.usage.input_tokens, resp.usage.output_tokens)
+                text = next((b.text for b in resp.content if b.type == "text"), "")
             return schema.model_validate(_parse_json(text))
         except Exception as e:  # noqa: BLE001 - reintento unico y descarte con log
             if intento == 1:
-                correccion = (
-                    f"\n\nTu salida anterior fue:\n{text}\n"
-                    f"No validó ({e}). Responde SOLO el JSON corregido."
-                )
+                correccion = f"\n\nTu intento anterior falló ({e}). Responde SOLO el JSON válido del esquema."
             else:
                 log.warning("agente %s descartado tras 2 intentos: %s", prompt_name, e)
     return None
