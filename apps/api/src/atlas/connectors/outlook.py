@@ -4,6 +4,7 @@ Auth: device code flow de MSAL (cliente publico, sin secreto). El token cache
 serializado viaja cifrado en SOURCE.auth_meta. Sync: delta queries de Graph,
 el deltaLink se guarda en SOURCE.sync_cursor.
 """
+import asyncio
 from datetime import datetime
 
 import httpx
@@ -20,6 +21,19 @@ DELTA_INICIAL = (
 )
 
 REMITENTES_RUIDO = ("no-reply", "noreply", "notifications", "mailer-daemon", "newsletter")
+
+
+async def _graph_get(client: httpx.AsyncClient, url: str, token: str, intentos: int = 3) -> dict:
+    """GET a Graph con reintentos: respeta Retry-After en 429 y hace backoff
+    exponencial en 5xx, para que un rate-limit transitorio no aborte el sync."""
+    for i in range(intentos):
+        r = await client.get(url, headers={"Authorization": f"Bearer {token}"})
+        if (r.status_code == 429 or r.status_code >= 500) and i < intentos - 1:
+            await asyncio.sleep(int(r.headers.get("Retry-After", 2 ** i)))
+            continue
+        r.raise_for_status()
+        return r.json()
+    return {}
 
 
 def es_ruido(msg: dict) -> bool:
@@ -84,9 +98,7 @@ class OutlookMailConnector:
         items: list[NewRawItem] = []
         async with httpx.AsyncClient(timeout=60) as client:
             while url:
-                r = await client.get(url, headers={"Authorization": f"Bearer {token}"})
-                r.raise_for_status()
-                data = r.json()
+                data = await _graph_get(client, url, token)
                 for msg in data.get("value", []):
                     if msg.get("@removed") or es_ruido(msg):
                         continue

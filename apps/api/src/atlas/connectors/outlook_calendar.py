@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 import httpx
 
 from atlas.connectors.base import ConnectorHealth, NewRawItem, register
-from atlas.connectors.outlook import GRAPH, OutlookMailConnector
+from atlas.connectors.outlook import GRAPH, OutlookMailConnector, _graph_get
 
 
 @register
@@ -27,9 +27,7 @@ class OutlookCalendarConnector(OutlookMailConnector):
         items: list[NewRawItem] = []
         async with httpx.AsyncClient(timeout=60) as client:
             while url:
-                r = await client.get(url, headers={"Authorization": f"Bearer {token}"})
-                r.raise_for_status()
-                data = r.json()
+                data = await _graph_get(client, url, token)
                 for ev in data.get("value", []):
                     if ev.get("@removed") or ev.get("isCancelled"):
                         continue

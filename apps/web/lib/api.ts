@@ -23,15 +23,36 @@ export const api = {
 };
 
 export function connectWS(onChange: () => void): () => void {
-  try {
-    const ws = new WebSocket(`${BASE.replace("http", "ws")}/ws`);
-    ws.onmessage = onChange;
-    const ping = setInterval(() => ws.readyState === 1 && ws.send("ping"), 30000);
-    return () => {
-      clearInterval(ping);
-      ws.close();
-    };
-  } catch {
-    return () => {};
-  }
+  let ws: WebSocket | null = null;
+  let ping: ReturnType<typeof setInterval> | undefined;
+  let retry: ReturnType<typeof setTimeout> | undefined;
+  let backoff = 1000;
+  let cerrado = false;
+
+  const connect = () => {
+    try {
+      ws = new WebSocket(`${BASE.replace("http", "ws")}/ws`);
+      ws.onmessage = onChange;
+      ws.onopen = () => {
+        backoff = 1000;
+      };
+      ws.onclose = () => {
+        clearInterval(ping);
+        if (cerrado) return;
+        retry = setTimeout(connect, backoff); // reconecta con backoff hasta 30s
+        backoff = Math.min(backoff * 2, 30000);
+      };
+      ping = setInterval(() => ws?.readyState === 1 && ws.send("ping"), 30000);
+    } catch {
+      retry = setTimeout(connect, backoff);
+    }
+  };
+  connect();
+
+  return () => {
+    cerrado = true;
+    clearInterval(ping);
+    clearTimeout(retry);
+    ws?.close();
+  };
 }

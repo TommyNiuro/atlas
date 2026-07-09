@@ -1,8 +1,9 @@
 import asyncio
 import contextlib
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from atlas import ws
 from atlas.routers import settings, tasks
@@ -30,7 +31,15 @@ app.include_router(settings.router)
 
 
 @app.get("/health")
-def health() -> dict:
+async def health() -> dict:
+    # verifica la DB (la dependencia critica); 503 si esta caida
+    from atlas.db.session import engine
+
+    try:
+        async with engine.connect() as c:
+            await c.execute(text("SELECT 1"))
+    except Exception as e:  # noqa: BLE001
+        raise HTTPException(503, f"db no disponible: {e}") from e
     return {"status": "ok"}
 
 

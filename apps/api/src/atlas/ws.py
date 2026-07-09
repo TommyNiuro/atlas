@@ -39,12 +39,14 @@ async def escuchar_postgres() -> None:
     import asyncpg
 
     dsn = DATABASE_URL.replace("postgresql+asyncpg://", "postgresql://")
+    loop = asyncio.get_running_loop()
     while True:
+        conn = None
         try:
             conn = await asyncpg.connect(dsn)
 
             def on_notify(_conn, _pid, _channel, payload):
-                asyncio.get_event_loop().create_task(
+                loop.create_task(
                     manager.broadcast({"type": "tasks_changed", "detail": payload})
                 )
 
@@ -52,9 +54,13 @@ async def escuchar_postgres() -> None:
             while not conn.is_closed():
                 await asyncio.sleep(5)
         except asyncio.CancelledError:
-            with contextlib.suppress(Exception):
-                await conn.close()
+            if conn:
+                with contextlib.suppress(Exception):
+                    await conn.close()
             raise
         except Exception as e:  # noqa: BLE001
             log.warning("listener de postgres caido, reintento en 5s: %s", e)
+            if conn:
+                with contextlib.suppress(Exception):
+                    await conn.close()
             await asyncio.sleep(5)

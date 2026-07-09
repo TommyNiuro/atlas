@@ -1,5 +1,8 @@
 """Settings: estado de conectores y editor de pesos del scoring (el ranking
 se recalcula al guardar)."""
+import math
+import os
+
 import yaml
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
@@ -37,8 +40,17 @@ async def guardar_pesos(body: dict):
     actual = load_weights()
     if set(body.get("weights", {})) != set(actual["weights"]):
         raise HTTPException(422, "weights debe traer exactamente los factores existentes")
-    actual["weights"] = {k: float(v) for k, v in body["weights"].items()}
-    DEFAULT_WEIGHTS_PATH.write_text(yaml.safe_dump(actual, sort_keys=False, allow_unicode=True))
+    try:
+        pesos = {k: float(v) for k, v in body["weights"].items()}
+    except (TypeError, ValueError) as e:
+        raise HTTPException(422, "los pesos deben ser numeros") from e
+    if not all(math.isfinite(v) for v in pesos.values()):
+        raise HTTPException(422, "los pesos deben ser finitos (ni NaN ni infinito)")
+    actual["weights"] = pesos
+    # escritura atomica: temporal + replace (un fallo a mitad no corrompe el yaml)
+    tmp = DEFAULT_WEIGHTS_PATH.with_suffix(".tmp")
+    tmp.write_text(yaml.safe_dump(actual, sort_keys=False, allow_unicode=True))
+    os.replace(tmp, DEFAULT_WEIGHTS_PATH)
     async with SessionLocal() as s:
         await rescore_abiertas(s)
         await s.commit()
