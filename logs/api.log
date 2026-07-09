@@ -177,3 +177,54 @@ INFO:     127.0.0.1:50105 - "WebSocket /ws" [accepted]
 INFO:     connection open
 INFO:     127.0.0.1:50104 - "GET /api/suggestions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:50103 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53907 - "OPTIONS /api/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53908 - "OPTIONS /api/scoring HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53907 - "GET /api/scoring HTTP/1.1" 200 OK
+INFO:     127.0.0.1:53908 - "GET /api/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54026 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54033 - "OPTIONS /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54034 - "OPTIONS /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54035 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54034 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54033 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54208 - "OPTIONS /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54209 - "OPTIONS /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54210 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54209 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54208 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54215 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54286 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54289 - "GET /api/sources HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54683 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54679 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54682 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54710 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54719 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54709 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54718 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54719 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54710 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54718 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54709 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54710 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54719 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54790 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [79911]
+INFO:     Started server process [93716]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:54817 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54820 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54827 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:54830 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54850 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54849 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54854 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54863 - "GET /api/today HTTP/1.1" 200 OK

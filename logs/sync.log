@@ -2,3 +2,7 @@
 outlook_mail: 0 traidos, 0 nuevos, errores: ['Token vencido: corre `task auth-outlook` de nuevo']
 outlook_cal: 0 traidos, 0 nuevos, errores: ['Token vencido: corre `task auth-outlook` de nuevo']
 Pipeline: {'procesados': 0, 'duplicados': 0, 'tareas': 0, 'sugeridas': 0, 'descartadas': 0}
+=== sync 2026-07-09 14:07:39 ===
+outlook_mail: 0 traidos, 0 nuevos, errores: ['Token vencido: corre `task auth-outlook` de nuevo']
+outlook_cal: 0 traidos, 0 nuevos, errores: ['Token vencido: corre `task auth-outlook` de nuevo']
+Pipeline: {'procesados': 0, 'duplicados': 0, 'tareas': 0, 'sugeridas': 0, 'descartadas': 0}

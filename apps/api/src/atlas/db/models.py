@@ -128,6 +128,9 @@ class Task(Base):
     status: Mapped[str] = mapped_column(Text, default="open")
     task_type: Mapped[str | None] = mapped_column(Text)  # accion|seguimiento|delegable|estrategico|personal
     due_date: Mapped[date | None] = mapped_column(Date)
+    # snooze: distinto de due_date. due_date es informativo (afecta el score,
+    # nunca oculta la tarea); snoozed_until oculta la tarea de Hoy hasta esa fecha.
+    snoozed_until: Mapped[date | None] = mapped_column(Date)
     estimated_minutes: Mapped[int | None] = mapped_column(Integer)
     evidence_quote: Mapped[str | None] = mapped_column(Text)
     deep_link: Mapped[str | None] = mapped_column(Text)

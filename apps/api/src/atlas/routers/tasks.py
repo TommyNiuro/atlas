@@ -49,8 +49,9 @@ async def vista_hoy():
                 .outerjoin(TaskScore, TaskScore.task_id == Task.id)
                 .where(
                     Task.status.in_(("open", "in_progress", "waiting")),
-                    # Hoy = sin fecha, vencidas o de hoy; snooze (fecha futura) las oculta
-                    or_(Task.due_date.is_(None), Task.due_date <= date.today()),
+                    # due_date es informativo (afecta score, no oculta); solo el
+                    # snooze explicito oculta la tarea de Hoy
+                    or_(Task.snoozed_until.is_(None), Task.snoozed_until <= date.today()),
                 )
                 .order_by(TaskScore.rank_today.nulls_last())
             )
@@ -235,13 +236,13 @@ async def snooze(task_id: uuid.UUID, dias: int = 1):
         t = await s.get(Task, task_id)
         if not t:
             raise HTTPException(404)
-        t.due_date = date.fromordinal(date.today().toordinal() + dias)
+        t.snoozed_until = date.fromordinal(date.today().toordinal() + dias)
         s.add(TaskEvent(task_id=t.id, user_id=t.user_id, event="snoozed",
                         detail={"dias": dias}))
         await rescore_abiertas(s)
         await _notify(s)
         await s.commit()
-        return {"ok": True, "due_date": t.due_date.isoformat()}
+        return {"ok": True, "snoozed_until": t.snoozed_until.isoformat()}
 
 
 @router.get("/projects")
