@@ -22,8 +22,11 @@ class OutlookCalendarConnector(OutlookMailConnector):
         )
 
     async def pull_incremental(self, cursor: str | None) -> tuple[list[NewRawItem], str | None]:
+        # re-basaliza la ventana de 14 dias en cada sync: si guardara el deltaLink
+        # la ventana quedaria congelada y los eventos futuros nunca entrarian.
+        # Re-pull es barato, el dedup por external_id salta lo ya visto.
         token = self.get_access_token()
-        url = cursor or self._delta_inicial()
+        url = self._delta_inicial()
         items: list[NewRawItem] = []
         async with httpx.AsyncClient(timeout=60) as client:
             while url:
@@ -44,10 +47,8 @@ class OutlookCalendarConnector(OutlookMailConnector):
                             text=ev.get("subject", ""),
                         )
                     )
-                if delta := data.get("@odata.deltaLink"):
-                    return items, delta
                 url = data.get("@odata.nextLink")
-        return items, cursor
+        return items, None
 
     async def health(self) -> ConnectorHealth:
         return await super().health()
