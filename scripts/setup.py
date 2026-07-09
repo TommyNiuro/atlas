@@ -23,6 +23,13 @@ def main() -> None:
     so = platform.system()
     print(f"Sistema detectado: {so} ({platform.machine()})")
 
+    # cifrado de disco: sin FileVault los correos y tokens quedan legibles en disco
+    if so == "Darwin":
+        estado = subprocess.run(["fdesetup", "status"], capture_output=True, text=True).stdout
+        if "On" not in estado:
+            print("⚠️  FileVault APAGADO: tus datos quedarían sin cifrar. Actívalo en")
+            print("   Ajustes > Privacidad y seguridad > FileVault antes de usar datos reales.")
+
     faltan = [t for t in ("uv", "pnpm", "docker") if not shutil.which(t)]
     if faltan:
         print(f"Faltan herramientas: {', '.join(faltan)}")

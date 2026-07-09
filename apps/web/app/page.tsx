@@ -197,14 +197,22 @@ export default function App() {
   const [today, setToday] = useState<Today | null>(null);
   const [sugs, setSugs] = useState<Task[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  const [sugsErr, setSugsErr] = useState<string | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [sel, setSel] = useState(0);
 
   const refresh = useCallback(() => {
     setErr(null);
     api.today().then(setToday).catch((e) => setErr(String(e)));
-    api.suggestions().then(setSugs).catch(() => {});
+    api.suggestions().then((d) => { setSugs(d); setSugsErr(null); }).catch((e) => setSugsErr(String(e)));
   }, []);
+
+  const doneTask = useCallback((id: string) => api.complete(id).then(refresh), [refresh]);
+  const toggleTheme = () => {
+    const t = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem("atlas-theme", t);
+  };
 
   useEffect(() => {
     refresh();
@@ -225,25 +233,40 @@ export default function App() {
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        api.sync().then(() => setTimeout(refresh, 1500)); // sync manual
+        return;
+      }
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
         setPaletteOpen((o) => !o);
         return;
       }
       if (paletteOpen || (e.target as HTMLElement).tagName === "INPUT") return;
+      if (e.key === "/") {
+        e.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
       if (vista === "sugerencias" && sugs?.length) {
         const cur = sugs[Math.min(sel, sugs.length - 1)];
         if (e.key === "ArrowDown") setSel((s) => Math.min(s + 1, sugs.length - 1));
         if (e.key === "ArrowUp") setSel((s) => Math.max(s - 1, 0));
-        if (cur && ["a", "x", "e"].includes(e.key.toLowerCase())) {
+        if (cur && ["a", "x", "e"].includes(e.key.toLowerCase()))
           triage(cur.id, { a: "accept", x: "reject", e: "edit" }[e.key.toLowerCase()]!);
-        }
       }
-      if (e.key.toLowerCase() === "g") setVista("hoy");
+      if (vista === "hoy" && today) {
+        const n = parseInt(e.key, 10);
+        // 1-5 abre el origen de la tarea N; C completa la primera del top
+        if (n >= 1 && n <= 5 && today.top5[n - 1]?.deep_link)
+          window.open(today.top5[n - 1].deep_link!, "_blank");
+        if (e.key.toLowerCase() === "c" && today.top5[0]) doneTask(today.top5[0].id);
+      }
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [paletteOpen, vista, sugs, sel, triage]);
+  }, [paletteOpen, vista, sugs, sel, triage, today, refresh, doneTask]);
 
   const hoyTxt = SALUDO.format(new Date());
   return (
@@ -255,7 +278,10 @@ export default function App() {
           Sugerencias {today?.sugeridas_pendientes ? <span className="badge">{today.sugeridas_pendientes}</span> : null}
         </button>
         <button className={`nav-item${vista === "settings" ? " active" : ""}`} onClick={() => setVista("settings")}>Settings</button>
-        <div className="sidebar-foot"><kbd>⌘K</kbd> palette · <kbd>A/X/E</kbd> triage</div>
+        <div className="sidebar-foot">
+          <button className="nav-item" onClick={toggleTheme}>Cambiar tema</button>
+          <div style={{ padding: "6px 10px" }}><kbd>⌘K</kbd> palette · <kbd>/</kbd> buscar · <kbd>A/X/E</kbd> triage</div>
+        </div>
       </aside>
       <main className="main">
         <div className="saludo" style={{ textTransform: "capitalize" }}>{hoyTxt}</div>
@@ -265,7 +291,7 @@ export default function App() {
           {vista === "settings" && "Conectores y personalidad del scoring."}
         </div>
         {vista === "hoy" && <VistaHoy data={today} error={err} retry={refresh} onDone={(id) => api.complete(id).then(refresh)} />}
-        {vista === "sugerencias" && <VistaSugerencias items={sugs} error={err} retry={refresh} onTriage={triage} sel={sel} />}
+        {vista === "sugerencias" && <VistaSugerencias items={sugs} error={sugsErr} retry={refresh} onTriage={triage} sel={sel} />}
         {vista === "settings" && <VistaSettings />}
       </main>
       {paletteOpen && <Palette onClose={() => setPaletteOpen(false)} onCreated={refresh} goto={setVista} />}

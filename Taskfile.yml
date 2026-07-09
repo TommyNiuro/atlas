@@ -17,7 +17,7 @@ tasks:
   dev:web:
     dir: apps/web
     cmds:
-      - pnpm dev
+      - pnpm dev -p 3005  # mismo puerto que el deploy (la .app y CORS asumen 3005)
 
   setup:
     desc: Instalacion inicial multiplataforma

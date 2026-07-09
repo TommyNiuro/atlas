@@ -7,9 +7,19 @@
   --gold: #ffd166; --blue: #5b7bff; --blue-soft: rgba(91, 123, 255, 0.12);
   --success: #34d399; --warning: #fbbf24; --danger: #f87171;
   --gold-soft: rgba(255, 209, 102, 0.1); --chip-bg: rgba(148, 163, 210, 0.08);
-  --font-body: "Inter", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  --font-body: var(--font-inter), "Inter", "Segoe UI", system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-mono: var(--font-jbmono), "JetBrains Mono", ui-monospace, Menlo, monospace;
   --radius: 10px; --radius-lg: 14px;
+}
+/* tema claro (regresión recuperada del prototipo) */
+:root[data-theme="light"] {
+  --bg: #f4f6fa; --surface: #fff; --overlay: #eef1f6; --raised: #e4e8f0;
+  --sidebar-bg: #fff; --border: rgba(30, 40, 80, 0.1); --border-strong: rgba(30, 40, 80, 0.18);
+  --fg: #1a2138; --fg-bright: #0c1222; --muted: #5e6a8a;
+  --blue: #3b5fe5; --blue-soft: rgba(59, 95, 229, 0.08);
+  --gold: #b8911f; --gold-soft: rgba(184, 145, 31, 0.1);
+  --success: #16a34a; --warning: #ca8a04; --danger: #dc2626; --chip-bg: rgba(30, 40, 80, 0.05);
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--fg); font: 14px/1.55 var(--font-body); }
@@ -28,7 +38,7 @@ input { font: inherit; background: none; border: none; color: inherit; outline: 
 kbd { font-family: var(--font-mono); font-size: 11px; background: var(--chip-bg); border: 1px solid var(--border); border-radius: 5px; padding: 1px 6px; }
 
 .main { flex: 1; overflow-y: auto; padding: 28px 36px; }
-.saludo { font-size: 26px; font-weight: 600; color: var(--fg-bright); margin-bottom: 4px; font-family: Georgia, serif; }
+.saludo { font-size: 26px; font-weight: 600; color: var(--fg-bright); margin-bottom: 4px; font-family: var(--font-display); }
 .sub { color: var(--muted); margin-bottom: 24px; }
 .layout-hoy { display: grid; grid-template-columns: 3fr 2fr; gap: 24px; align-items: start; }
 @media (max-width: 900px) { .layout-hoy { grid-template-columns: 1fr; } }

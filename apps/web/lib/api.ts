@@ -20,6 +20,11 @@ export const api = {
     req(`/api/tasks/${id}/triage`, { method: "POST", body: JSON.stringify({ action, ...extra }) }),
   complete: (id: string) => req(`/api/tasks/${id}/complete`, { method: "POST" }),
   create: (text: string) => req("/api/tasks", { method: "POST", body: JSON.stringify({ text }) }),
+  snooze: (id: string) => req(`/api/tasks/${id}/snooze`, { method: "POST" }),
+  sync: () => req("/api/sync", { method: "POST" }),
+  search: (q: string) => req(`/api/search?q=${encodeURIComponent(q)}`),
+  budget: () => req("/api/budget"),
+  reauth: (kind: string) => req(`/api/sources/${kind}/reauth`, { method: "POST" }),
 };
 
 export function connectWS(onChange: () => void): () => void {

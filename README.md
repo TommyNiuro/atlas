@@ -40,7 +40,7 @@ Local-first y open source: tus datos viven en tu computador, nada se sube a serv
 brew install uv pnpm go-task colima docker
 git clone https://github.com/TommyNiuro/atlas.git && cd atlas
 python3 scripts/setup.py     # detecta el SO, llave Fernet al Keychain, deps (agentes: usa tu login de Claude Code, sin API key)
-task dev                     # stack completo: web en :3000, api en :8000
+task dev                     # stack completo: web en :3005, api en :8000
 ```
 
 ### Windows (PowerShell)
@@ -52,7 +52,7 @@ python scripts\setup.py      # llave Fernet al Credential Locker (DPAPI)
 task dev
 ```
 
-Abre `http://localhost:3000` (dashboard) y `http://localhost:8000/health` (api).
+Abre `http://localhost:3005` (dashboard) y `http://localhost:8000/health` (api).
 
 ## Estructura
 

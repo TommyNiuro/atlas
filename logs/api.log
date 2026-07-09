@@ -149,3 +149,14 @@ INFO:     127.0.0.1:49697 - "GET /api/suggestions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49697 - "GET /api/suggestions HTTP/1.1" 200 OK
 INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [75131]
+INFO:     Started server process [79911]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49858 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49862 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49865 - "POST /api/sync HTTP/1.1" 200 OK
