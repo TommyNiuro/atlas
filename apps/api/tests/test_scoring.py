@@ -59,6 +59,17 @@ def test_score_acotado_0_100():
     assert score == 100.0
 
 
+def test_eisenhower_se_reconstruye_del_breakdown():
+    # regresión del bug de la auditoría: rescore perdía urgente/importante y la
+    # tarea se degradaba. Verifica que se reconstruyen exactos del breakdown.
+    w = W["weights"]
+    for urg, imp in [(True, True), (False, True), (True, False), (False, False)]:
+        _, bd = compute_score(Facts(urgente=urg, importante=imp), W)
+        eis = round(bd["eisenhower_factor"] / w["eisenhower_factor"], 1)
+        assert (eis in (1.0, 0.5)) is urg
+        assert (eis in (1.0, 0.7)) is imp
+
+
 def test_breakdown_explicable():
     score, bd = compute_score(Facts(horas_hasta_deadline=12, impacto=0.8), W)
     assert abs(score - round(sum(bd.values()), 1)) < 0.1

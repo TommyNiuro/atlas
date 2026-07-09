@@ -30,6 +30,21 @@ async def fuentes():
         ]
 
 
+@router.post("/sources/{kind}/reauth")
+async def reauth(kind: str):
+    """Re-lanza el device flow del conector (el codigo sale en el log del server)."""
+    import asyncio
+
+    from atlas.connectors import outlook, outlook_calendar  # noqa: F401 registra
+    from atlas.connectors.base import REGISTRY
+    from atlas.connectors.sync import authenticate
+
+    if kind not in REGISTRY:
+        raise HTTPException(404, f"conector desconocido: {kind}")
+    asyncio.create_task(authenticate(kind))
+    return {"ok": True, "detalle": "device flow disparado; revisa el log del server para el codigo"}
+
+
 @router.get("/scoring")
 async def pesos():
     return load_weights()

@@ -1,0 +1,7 @@
+# Proyectos activos. Cada uno puede ser solo un nombre, o un objeto con area y
+# cliente (por nombre, deben existir en areas.yaml / clients.yaml). task seed.
+projects: []
+  # - Rebrand Q3
+  # - name: Onboarding Acme
+  #   area: Clientes
+  #   cliente: Acme

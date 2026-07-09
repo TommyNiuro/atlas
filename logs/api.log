@@ -133,3 +133,19 @@ INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 INFO:     127.0.0.1:49272 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49634 - "OPTIONS /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49635 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:49637 - "OPTIONS /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49637 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49634 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49697 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49697 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49697 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49697 - "GET /api/suggestions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49698 - "GET /api/today HTTP/1.1" 200 OK

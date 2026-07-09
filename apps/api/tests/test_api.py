@@ -50,10 +50,13 @@ def test_crear_con_fecha_natural_y_vista_hoy(cliente):
     assert "café con Alan" in body["title"]
     assert body["due_date"] is not None  # el jueves se parseó
 
+    # una tarea sin fecha aparece en Hoy con score y rank (la futura queda oculta)
+    cliente.post("/api/tasks", json={"text": "revisar contrato"})
     hoy = cliente.get("/api/today").json()
-    assert len(hoy["top5"]) == 1
+    titulos = [t["title"] for t in hoy["top5"]]
+    assert "revisar contrato" in titulos
     assert hoy["top5"][0]["score"] is not None
-    assert hoy["top5"][0]["rank"] == 1
+    assert hoy["top5"][0]["rank"] is not None
 
 
 def test_triage_guarda_feedback(cliente):

@@ -1,0 +1,6 @@
+# Clientes activos de Tomás. El seed los carga idempotente (task seed).
+# Habilitan la clasificación por cliente y el context_bonus del scoring.
+# Agrega los tuyos, uno por línea.
+clients: []
+  # - Acme
+  # - Costco

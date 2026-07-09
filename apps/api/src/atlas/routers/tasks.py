@@ -1,5 +1,6 @@
 """API de tareas: vista Hoy, bandeja, triage por teclado, creacion en
 lenguaje natural. Toda accion del usuario queda en USER_FEEDBACK o TASK_EVENT."""
+import asyncio
 import re
 import uuid
 from datetime import date, datetime, timezone
@@ -7,7 +8,7 @@ from datetime import date, datetime, timezone
 from dateparser.search import search_dates
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from sqlalchemy import func, select, text
+from sqlalchemy import func, or_, select, text
 
 from atlas.agents.orchestrator import ESTADOS_ABIERTOS, rescore_abiertas
 from atlas.db.models import Area, Client, Project, RawItem, Task, TaskEvent, TaskScore, UserFeedback
@@ -46,7 +47,11 @@ async def vista_hoy():
             await s.execute(
                 select(Task, TaskScore)
                 .outerjoin(TaskScore, TaskScore.task_id == Task.id)
-                .where(Task.status.in_(("open", "in_progress", "waiting")))
+                .where(
+                    Task.status.in_(("open", "in_progress", "waiting")),
+                    # Hoy = sin fecha, vencidas o de hoy; snooze (fecha futura) las oculta
+                    or_(Task.due_date.is_(None), Task.due_date <= date.today()),
+                )
                 .order_by(TaskScore.rank_today.nulls_last())
             )
         ).all()
@@ -127,11 +132,14 @@ async def triage(task_id: uuid.UUID, body: TriageIn):
         t = await s.get(Task, task_id)
         if not t:
             raise HTTPException(404)
+        if t.status != "suggested":
+            raise HTTPException(409, f"solo se hace triage a tareas sugeridas (esta: {t.status})")
         before = {"status": t.status, "title": t.title}
         kind = {"accept": "reclassified", "reject": "rejected",
                 "edit": "reclassified", "merge": "merged"}.get(body.action)
         if not kind:
             raise HTTPException(422, "action invalida")
+        extra_after = {}
 
         if body.action == "accept":
             t.status = "open"
@@ -139,13 +147,23 @@ async def triage(task_id: uuid.UUID, body: TriageIn):
             t.status = "dropped"
         elif body.action == "edit":
             t.title = body.title or t.title
-            t.due_date = date.fromisoformat(body.due_date) if body.due_date else t.due_date
+            if body.due_date:
+                try:
+                    t.due_date = date.fromisoformat(body.due_date)
+                except ValueError as e:
+                    raise HTTPException(422, "due_date inválida (usa YYYY-MM-DD)") from e
             t.status = "open"
         elif body.action == "merge":
+            if not body.merge_into:
+                raise HTTPException(422, "merge requiere merge_into")
+            if not await s.get(Task, uuid.UUID(body.merge_into)):
+                raise HTTPException(404, "merge_into no existe")
             t.status = "dropped"
+            extra_after = {"merged_into": body.merge_into}
 
         s.add(UserFeedback(task_id=t.id, user_id=t.user_id, feedback_kind=kind,
-                           before=before, after={"status": t.status, "title": t.title}))
+                           before=before,
+                           after={"status": t.status, "title": t.title, **extra_after}))
         s.add(TaskEvent(task_id=t.id, user_id=t.user_id, event="status_change",
                         detail={"triage": body.action}))
         await rescore_abiertas(s)
@@ -245,3 +263,58 @@ async def proyectos():
             "proyectos": [{"id": str(p.id), "name": p.name} for p in projs],
             "clientes": [{"id": str(c.id), "name": c.name} for c in clientes],
         }
+
+
+@router.post("/sync")
+async def sync_manual():
+    """Dispara el sync de todas las fuentes + el pipeline en background (Cmd/Ctrl+Shift+S)."""
+    from atlas.agents.orchestrator import procesar_pendientes
+    from atlas.connectors import outlook, outlook_calendar  # noqa: F401 registra conectores
+    from atlas.connectors.base import REGISTRY
+    from atlas.connectors.sync import run_sync
+
+    async def _run():
+        for kind in list(REGISTRY):
+            try:
+                await run_sync(kind)
+            except Exception:  # noqa: BLE001 - una fuente caida no frena a las demas
+                pass
+        try:
+            await procesar_pendientes()  # emite NOTIFY, el dashboard se refresca solo
+        except Exception:  # noqa: BLE001
+            pass
+
+    asyncio.create_task(_run())
+    return {"ok": True, "detalle": "sync disparado"}
+
+
+@router.get("/budget")
+async def presupuesto():
+    from atlas.agents.runtime import _budget_spent
+    from atlas.core import config
+
+    inp, out = await _budget_spent()
+    return {
+        "input_spent": inp, "output_spent": out,
+        "input_limit": config.TOKEN_BUDGET_INPUT_DAILY,
+        "output_limit": config.TOKEN_BUDGET_OUTPUT_DAILY,
+        "pct": round(max(inp / config.TOKEN_BUDGET_INPUT_DAILY,
+                         out / config.TOKEN_BUDGET_OUTPUT_DAILY) * 100),
+    }
+
+
+@router.get("/search")
+async def buscar(q: str):
+    """Busqueda instantanea FTS en español sobre tareas abiertas (atajo '/')."""
+    if len(q.strip()) < 2:
+        return []
+    async with SessionLocal() as s:
+        rows = (await s.scalars(
+            select(Task).where(
+                Task.status.in_(ESTADOS_ABIERTOS),
+                func.to_tsvector("spanish", func.concat_ws(" ", Task.title, Task.description))
+                .op("@@")(func.websearch_to_tsquery("spanish", q)),
+            ).limit(20)
+        )).all()
+        return [{"id": str(t.id), "title": t.title, "status": t.status,
+                 "due_date": t.due_date.isoformat() if t.due_date else None} for t in rows]
