@@ -20,7 +20,7 @@ Local-first y open source: tus datos viven en tu computador, nada se sube a serv
 **En construcción, Bloque 0 (esqueleto).** El roadmap completo vive en [docs/Plan_de_Construccion.md](docs/Plan_de_Construccion.md) y la especificación en [docs/Requerimiento_Tecnico_v1.md](docs/Requerimiento_Tecnico_v1.md).
 
 - [x] Bloque 0: monorepo, Docker Compose (Postgres+pgvector, Redis), FastAPI `/health`, Next.js con el prototipo de diseño, CI
-- [ ] Bloque 1: modelo de datos (10 entidades, Alembic, cifrado Fernet)
+- [x] Bloque 1: modelo de datos (11 entidades con `user_id` desde el día uno, Alembic, índices GIN/ivfflat/B-tree, cifrado Fernet, seed de áreas)
 - [ ] Bloque 2: conector Outlook de punta a punta (device code flow + delta queries)
 - [ ] Bloque 3: motor de agentes (Extractor, Clasificador, Priorizador, Seguimiento) + Priority Engine
 - [ ] Bloque 4: app visible con datos reales (MVP)

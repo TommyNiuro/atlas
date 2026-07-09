@@ -35,9 +35,16 @@ tasks:
       - cd apps/api && uv run ruff check .
 
   migrate:
-    # ponytail: Alembic llega con el Bloque 1; el comando ya existe para no cambiar el flujo
+    desc: Aplica las migraciones de Alembic
+    dir: apps/api
     cmds:
-      - echo "Sin migraciones todavia (Bloque 1 pendiente)"
+      - uv run alembic upgrade head
+
+  seed:
+    desc: Carga las areas de trabajo (idempotente)
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.db.seed
 
   logs:
     cmds:
