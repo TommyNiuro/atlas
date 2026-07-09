@@ -17,13 +17,13 @@ Local-first y open source: tus datos viven en tu computador, nada se sube a serv
 
 ## Estado
 
-**En construcción, Bloque 0 (esqueleto).** El roadmap completo vive en [docs/Plan_de_Construccion.md](docs/Plan_de_Construccion.md) y la especificación en [docs/Requerimiento_Tecnico_v1.md](docs/Requerimiento_Tecnico_v1.md).
+**MVP completo (bloques 0 a 4).** El roadmap vive en [docs/Plan_de_Construccion.md](docs/Plan_de_Construccion.md) y la especificación en [docs/Requerimiento_Tecnico_v1.md](docs/Requerimiento_Tecnico_v1.md).
 
 - [x] Bloque 0: monorepo, Docker Compose (Postgres+pgvector, Redis), FastAPI `/health`, Next.js con el prototipo de diseño, CI
 - [x] Bloque 1: modelo de datos (11 entidades con `user_id` desde el día uno, Alembic, índices GIN/ivfflat/B-tree, cifrado Fernet, seed de áreas)
 - [x] Bloque 2: conector Outlook de punta a punta (interfaz `Connector`, device code flow, delta queries, filtro de newsletters, embeddings Voyage, sync idempotente)
 - [x] Bloque 3: motor de agentes (Extractor, Clasificador, Priorizador, Seguimiento con prompts versionados, dedup por coseno, umbrales de confianza, presupuesto diario de tokens) + Priority Engine determinista con desglose
-- [ ] Bloque 4: app visible con datos reales (MVP)
+- [x] Bloque 4: app visible con datos reales (API REST + WebSocket, vista Hoy con Top 5 y agenda, bandeja con triage A/X/E, command palette con fechas en español, Settings con conectores y editor de pesos, conector Outlook Calendar)
 - [ ] Bloques 5-7: Slack, Granola, HubSpot, planificación, aprendizaje, reportería
 
 ## Requisitos

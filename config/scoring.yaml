@@ -1,22 +1,18 @@
-# Pesos del Priority Engine (formula determinista, seccion 8 del requerimiento).
-# PriorityScore = clamp(0, 100, suma de peso * factor)
 weights:
-  deadline_factor: 25
-  impact_factor: 20
-  requester_factor: 15
-  eisenhower_factor: 12
-  pareto_factor: 10
-  frog_factor: 8
-  age_factor: 6
-  context_bonus: 4
-  effort_penalty_if_overloaded: -10
-
+  deadline_factor: 25.0
+  impact_factor: 20.0
+  requester_factor: 15.0
+  eisenhower_factor: 12.0
+  pareto_factor: 10.0
+  frog_factor: 8.0
+  age_factor: 6.0
+  context_bonus: 4.0
+  effort_penalty_if_overloaded: -10.0
 requester:
   cliente_con_deal: 1.0
   jefe_socio: 0.9
   colega: 0.6
   auto_impuesta: 0.4
-
 thresholds:
   dedup_cosine: 0.92
   confidence_discard: 0.6

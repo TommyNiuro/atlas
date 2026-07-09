@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from atlas.core import crypto, embeddings
-from atlas.connectors import outlook  # noqa: F401 - registra el conector
+from atlas.connectors import outlook, outlook_calendar  # noqa: F401 - registran conectores
 from atlas.connectors.base import REGISTRY, SyncResult
 from atlas.db.models import RawItem, Source
 from atlas.db.session import SessionLocal

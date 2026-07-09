@@ -47,10 +47,16 @@ tasks:
       - uv run python -m atlas.db.seed
 
   auth-outlook:
-    desc: Device code flow de Outlook (pega el codigo en el navegador)
+    desc: Device code flow de Outlook Mail (pega el codigo en el navegador)
     dir: apps/api
     cmds:
       - uv run python -m atlas.connectors.sync outlook_mail --auth
+
+  auth-calendar:
+    desc: Device code flow de Outlook Calendar
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync outlook_cal --auth
 
   sync:
     desc: Sync manual de Outlook Mail + pipeline de agentes
