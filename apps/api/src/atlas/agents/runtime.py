@@ -90,6 +90,13 @@ async def _budget_spent() -> tuple[int, int]:
         return _local_spent["input"], _local_spent["output"]
 
 
+def _notify_os(msg: str) -> None:
+    if shutil.which("osascript"):
+        import subprocess
+
+        subprocess.Popen(["osascript", "-e", f'display notification "{msg}" with title "Atlas"'])
+
+
 async def _budget_add(inp: int, out: int) -> None:
     _local_spent["input"] += inp
     _local_spent["output"] += out
@@ -98,9 +105,14 @@ async def _budget_add(inp: int, out: int) -> None:
 
         r = aioredis.from_url(config.REDIS_URL)
         key = f"atlas:tokens:{date.today().isoformat()}"
-        await r.hincrby(key, "input", inp)
-        await r.hincrby(key, "output", out)
+        tot_in = await r.hincrby(key, "input", inp)
+        tot_out = await r.hincrby(key, "output", out)
         await r.expire(key, 60 * 60 * 48)
+        pct = max(tot_in / config.TOKEN_BUDGET_INPUT_DAILY, tot_out / config.TOKEN_BUDGET_OUTPUT_DAILY)
+        # avisa una sola vez al dia al cruzar el 80% (regla del requerimiento)
+        if pct >= 0.8 and await r.set(f"{key}:warned80", "1", nx=True, ex=60 * 60 * 48):
+            log.warning("presupuesto de tokens al %d%%", int(pct * 100))
+            _notify_os(f"Presupuesto de tokens al {int(pct * 100)}%")
         await r.aclose()
     except Exception:
         pass

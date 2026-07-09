@@ -56,11 +56,13 @@ class RawItem(Base):
     __table_args__ = (
         UniqueConstraint("source_id", "external_id"),
         Index("ix_raw_item_payload_gin", "payload", postgresql_using="gin"),
+        # hnsw en vez de ivfflat: no depende del numero de filas ni de tuning de
+        # lists, da buen recall out-of-the-box (a escala MVP da igual, pero evita
+        # el indice mal dimensionado que marcó la auditoría)
         Index(
             "ix_raw_item_embedding",
             "embedding",
-            postgresql_using="ivfflat",
-            postgresql_with={"lists": 100},
+            postgresql_using="hnsw",
             postgresql_ops={"embedding": "vector_cosine_ops"},
         ),
     )

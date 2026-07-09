@@ -100,3 +100,36 @@ INFO:     127.0.0.1:65487 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:65481 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:65485 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
 INFO:     127.0.0.1:65483 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49210 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49212 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49214 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49216 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49218 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49219 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49219 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49218 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49214 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49216 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49212 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49210 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49212 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49210 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49216 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49214 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49218 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49219 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49214 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49218 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49219 - "OPTIONS /api/today HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49216 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49210 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     127.0.0.1:49212 - "OPTIONS /api/suggestions HTTP/1.1" 400 Bad Request
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [51850]
+INFO:     Started server process [75131]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:49272 - "GET /health HTTP/1.1" 200 OK
