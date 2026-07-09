@@ -53,10 +53,17 @@ tasks:
       - uv run python -m atlas.connectors.sync outlook_mail --auth
 
   sync:
-    desc: Sync manual de Outlook Mail
+    desc: Sync manual de Outlook Mail + pipeline de agentes
     dir: apps/api
     cmds:
       - uv run python -m atlas.connectors.sync outlook_mail
+      - uv run python -m atlas.agents.orchestrator
+
+  pipeline:
+    desc: Corre solo el pipeline de agentes sobre RawItems pendientes
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.agents.orchestrator
 
   logs:
     cmds:
