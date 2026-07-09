@@ -1,0 +1,2066 @@
+<!doctype html>
+<html lang="es" data-theme="dark">
+<script>/* ponytail: anti-flash */ document.documentElement.dataset.theme=localStorage.getItem('atlas-theme')||'dark';</script>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Atlas · Personal Operating System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  /* ponytail: dark theme (default) */
+  --bg:#0C1222;--surface:#141D33;--overlay:#1C2844;
+  --raised:#243254;
+  --sidebar-bg:#0A1020;--topbar-bg:rgba(10,16,32,.94);
+  --border:rgba(148,163,210,.16);--border-strong:rgba(148,163,210,.28);
+  --fg:#E8ECF4;--fg-bright:#FFFFFF;--muted:#8A99C2;
+  --gold:#FFD166;--blue:#5B7BFF;--blue-soft:rgba(91,123,255,.12);
+  --success:#34D399;--warning:#FBBF24;--danger:#F87171;
+  --gold-soft:rgba(255,209,102,.10);--success-soft:rgba(52,211,153,.10);
+  --warning-soft:rgba(251,191,36,.10);--danger-soft:rgba(248,113,113,.10);
+  --chip-bg:rgba(148,163,210,.08);
+  --font-display:'Fraunces',Georgia,serif;
+  --font-head:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-body:'Inter','Segoe UI',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,Menlo,monospace;
+  --sidebar-w:260px;--topbar-h:60px;
+  --radius:10px;--radius-lg:14px;--radius-xl:18px;
+  --space-xs:6px;--space-sm:10px;--space-md:16px;--space-lg:24px;--space-xl:32px;--space-2xl:48px;
+}
+/* ponytail: light theme — override only color tokens, everything else cascades */
+[data-theme="light"]{
+  --bg:#F4F6FA;--surface:#FFFFFF;--overlay:#EEF1F6;
+  --raised:#E4E8F0;
+  --sidebar-bg:#FFFFFF;--topbar-bg:rgba(255,255,255,.92);
+  --border:rgba(30,40,80,.10);--border-strong:rgba(30,40,80,.18);
+  --fg:#1A2138;--fg-bright:#0C1222;--muted:#5E6A8A;
+  --blue:#3B5FE5;--blue-soft:rgba(59,95,229,.08);
+  --gold:#B8911F;--gold-soft:rgba(184,145,31,.10);
+  --success:#16A34A;--success-soft:rgba(22,163,74,.08);
+  --warning:#CA8A04;--warning-soft:rgba(202,138,4,.08);
+  --danger:#DC2626;--danger-soft:rgba(220,38,38,.08);
+  --chip-bg:rgba(30,40,80,.05);
+}
+/* ponytail: light overrides for hardcoded rgba values */
+[data-theme="light"] .sidebar-item:hover{background:rgba(59,95,229,.06)}
+[data-theme="light"] .sidebar-item.active{background:rgba(59,95,229,.10)}
+[data-theme="light"] .suggestion-evidence{background:rgba(30,40,80,.04)}
+[data-theme="light"] .cmd-box{background:rgba(255,255,255,.96);box-shadow:0 24px 80px rgba(0,0,0,.15),0 0 0 1px var(--border)}
+[data-theme="light"] .cmd-overlay{background:rgba(244,246,250,.5)}
+[data-theme="light"] .topbar-avatar{background:linear-gradient(135deg,var(--blue),rgba(59,95,229,.5));border-color:rgba(59,95,229,.2)}
+[data-theme="light"] .connector-action button:hover{background:rgba(30,40,80,.04)}
+[data-theme="light"] .logo-mark{color:#fff}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;height:100%;overflow:hidden;text-rendering:optimizeLegibility}
+a{color:inherit;text-decoration:none}
+button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input{font:inherit;background:none;border:none;color:inherit;outline:none}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
+
+/* ─── APP SHELL ─── */
+.app{display:grid;grid-template-columns:var(--sidebar-w) 1fr;grid-template-rows:var(--topbar-h) 1fr;height:100vh;width:100vw}
+
+/* ─── SIDEBAR ─── */
+.sidebar{grid-row:1/-1;background:var(--sidebar-bg);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 16px;gap:2px;overflow-y:auto}
+.sidebar-brand{display:flex;align-items:center;gap:12px;padding:4px 8px 28px;font-family:var(--font-display);font-size:19px;font-weight:600;letter-spacing:-.02em}
+.sidebar-brand .logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--gold),var(--blue));border-radius:8px;display:grid;place-items:center;font-size:15px;font-weight:700;color:var(--bg)}
+.sidebar-section{padding:24px 10px 8px;font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);opacity:.5}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);font-size:13.5px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s ease;position:relative}
+.sidebar-item:hover{background:rgba(91,123,255,.08);color:var(--fg)}
+.sidebar-item.active{background:rgba(91,123,255,.14);color:var(--fg-bright)}
+.sidebar-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:20px;background:var(--blue);border-radius:0 4px 4px 0}
+.sidebar-item svg{width:18px;height:18px;flex-shrink:0;opacity:.65}
+.sidebar-item.active svg{opacity:1}
+.sidebar-item .badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;font-family:var(--font-mono)}
+.sidebar-item .badge-muted{margin-left:auto;background:var(--overlay);color:var(--muted);font-size:10px;font-weight:500;padding:2px 7px;border-radius:99px;font-family:var(--font-mono)}
+.sidebar-footer{margin-top:auto;padding:16px 8px 4px;border-top:1px solid var(--border)}
+.sidebar-sync{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);padding:8px 0}
+.sidebar-sync .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0}
+.sidebar-kbd{display:flex;align-items:center;gap:8px;padding:8px 0;font-size:11px;color:var(--muted);cursor:pointer;transition:color .15s}
+.sidebar-kbd:hover{color:var(--fg)}
+.kbd{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 6px;background:var(--chip-bg);border:1px solid var(--border);border-radius:5px;font-family:var(--font-mono);font-size:10px;color:var(--muted);line-height:1}
+
+/* ─── TOPBAR ─── */
+.topbar{background:var(--topbar-bg);backdrop-filter:blur(24px)saturate(1.4);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-xl);z-index:5}
+.topbar-left{display:flex;align-items:center;gap:var(--space-md)}
+.topbar-title{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.topbar-right{display:flex;align-items:center;gap:var(--space-sm)}
+.topbar-btn{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;color:var(--muted);transition:all .15s ease}
+.topbar-btn:hover{background:var(--overlay);color:var(--fg)}
+.topbar-btn svg{width:16px;height:16px}
+.topbar-search{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--muted);cursor:pointer;min-width:280px;transition:all .15s}
+.topbar-search:hover{border-color:var(--border-strong);background:var(--overlay)}
+.topbar-search svg{width:14px;height:14px;opacity:.5}
+.topbar-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),rgba(91,123,255,.5));display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--fg-bright);border:2px solid rgba(91,123,255,.25)}
+
+/* ─── MAIN CONTENT ─── */
+.main{overflow-y:auto;padding:var(--space-xl) 40px var(--space-2xl);background:var(--bg)}
+.view{display:none}
+.view.active{display:block}
+
+/* ─── TODAY VIEW ─── */
+.today-header{margin-bottom:var(--space-xl)}
+.today-greeting{font-family:var(--font-display);font-size:30px;font-weight:400;letter-spacing:-.02em;line-height:1.3;margin-bottom:6px}
+.today-greeting strong{font-weight:600;color:var(--fg-bright)}
+.today-sub{font-size:13.5px;color:var(--muted);line-height:1.5}
+.today-grid{display:grid;grid-template-columns:1fr 400px;gap:var(--space-xl);align-items:start}
+@media(max-width:1200px){.today-grid{grid-template-columns:1fr}}
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-md)}
+.section-title{font-size:14px;font-weight:600;letter-spacing:-.01em}
+.section-meta{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+
+/* ─── TASK ROW ─── */
+.task-list{display:flex;flex-direction:column;gap:8px}
+.task-row{display:grid;grid-template-columns:32px 1fr auto;align-items:center;gap:14px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);cursor:pointer;transition:all .15s ease;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.task-row:hover{background:var(--overlay);border-color:var(--border-strong);box-shadow:0 4px 12px rgba(0,0,0,.2);transform:translateY(-1px)}
+.task-row:active{transform:translateY(0);transition-duration:.05s}
+.task-row.top5{border-left:3px solid var(--gold)}
+.task-row.top5 .task-score{color:var(--gold)}
+.task-checkbox{width:18px;height:18px;border:1.5px solid var(--border-strong);border-radius:50%;display:grid;place-items:center;transition:all .15s ease;flex-shrink:0;cursor:pointer}
+.task-checkbox:hover{border-color:var(--success);background:var(--success-soft)}
+.task-checkbox.checked{border-color:var(--success);background:var(--success)}
+.task-checkbox.checked::after{content:'✓';font-size:10px;color:#fff}
+.task-row.completed .task-title{text-decoration:line-through;opacity:.4}
+.task-content{min-width:0}
+.task-title{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em}
+.task-meta-row{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap}
+.task-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;font-size:10.5px;font-family:var(--font-mono);background:var(--chip-bg);border:1px solid var(--border);color:var(--muted)}
+.task-chip.area{color:var(--blue)}
+.task-chip.client{color:var(--gold)}
+.task-chip.due{color:var(--warning)}
+.task-chip.due.overdue{color:var(--danger);background:var(--danger-soft)}
+.task-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.task-score{font-family:var(--font-mono);font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--muted);min-width:30px;text-align:right}
+.task-deep-link{opacity:0;transition:opacity .12s;font-size:11px;color:var(--muted)}
+.task-row:hover .task-deep-link{opacity:1}
+.task-deep-link:hover{color:var(--blue)}
+.task-evidence{display:none;position:absolute;left:44px;top:100%;z-index:20;background:var(--raised);border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:14px 18px;font-size:12.5px;color:var(--fg);max-width:440px;box-shadow:0 16px 48px rgba(0,0,0,.5);font-style:italic;line-height:1.65}
+.task-row:hover .task-evidence{display:block}
+.tasks-collapsed{margin-top:var(--space-md)}
+.tasks-toggle{display:flex;align-items:center;gap:8px;padding:10px 0;font-size:12.5px;color:var(--muted);cursor:pointer;transition:color .15s}
+.tasks-toggle:hover{color:var(--fg)}
+.tasks-toggle svg{width:14px;height:14px;transition:transform .15s}
+.tasks-toggle.open svg{transform:rotate(90deg)}
+.collapsed-list{display:none;flex-direction:column;gap:6px;margin-top:var(--space-sm)}
+.collapsed-list.open{display:flex}
+
+/* ─── AGENDA SIDEBAR ─── */
+.agenda-panel{display:flex;flex-direction:column;gap:var(--space-md)}
+.agenda-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);box-shadow:0 2px 12px rgba(0,0,0,.15)}
+.agenda-list{display:flex;flex-direction:column;gap:0;margin-top:var(--space-md)}
+.agenda-item{display:grid;grid-template-columns:56px 1fr;gap:14px;padding:10px 0;border-bottom:1px solid var(--border)}
+.agenda-item:last-child{border-bottom:none}
+.agenda-time{font-family:var(--font-mono);font-size:11px;color:var(--muted);padding-top:2px}
+.agenda-event{font-size:13px;font-weight:500}
+.agenda-event-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.agenda-block{border-left:2px dashed var(--gold);padding-left:10px}
+.agenda-block .agenda-event{color:var(--gold);font-weight:400;font-size:12px}
+.capacity-bar{margin-top:12px}
+.capacity-track{height:6px;background:var(--overlay);border-radius:3px;overflow:hidden}
+.capacity-fill{height:100%;border-radius:3px;transition:width .3s ease}
+.capacity-label{display:flex;justify-content:space-between;margin-top:6px;font-size:11px;font-family:var(--font-mono);color:var(--muted)}
+
+/* ─── WAITING LIST ─── */
+.waiting-item{display:flex;align-items:start;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.waiting-item:last-child{border-bottom:none}
+.waiting-icon{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:11px;margin-top:1px}
+.waiting-icon.mail{background:var(--blue-soft);color:var(--blue)}
+.waiting-icon.slack{background:var(--success-soft);color:var(--success)}
+.waiting-text{font-size:12px;line-height:1.5}
+.waiting-text strong{font-weight:600}
+.waiting-time{font-size:10px;color:var(--muted);font-family:var(--font-mono);margin-top:2px}
+
+/* ─── INBOX VIEW ─── */
+.inbox-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.inbox-header>div:first-child{flex:1}
+.inbox-count{font-family:var(--font-mono);font-size:11px;color:var(--muted)}
+.inbox-shortcuts{display:flex;gap:16px;font-size:11px;color:var(--muted)}
+.inbox-shortcuts span{display:flex;align-items:center;gap:4px}
+.suggestion-row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;padding:18px 22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:10px;transition:all .15s ease;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.suggestion-row:hover{border-color:var(--border-strong);background:var(--overlay);box-shadow:0 6px 20px rgba(0,0,0,.2);transform:translateY(-1px)}
+.suggestion-row:active{transform:translateY(0);transition-duration:.05s}
+.suggestion-row.focused{border-color:var(--blue);box-shadow:0 0 0 1px var(--blue),0 4px 16px rgba(91,123,255,.12)}
+.suggestion-content .task-title{margin-bottom:4px}
+.suggestion-evidence{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.65;margin-top:10px;padding:12px 16px;background:rgba(10,16,32,.5);border-radius:var(--radius);border-left:2px solid var(--border-strong)}
+.suggestion-confidence{font-family:var(--font-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.confidence-bar{width:48px;height:4px;background:var(--overlay);border-radius:2px;margin-top:4px}
+.confidence-fill{height:100%;border-radius:2px}
+.suggestion-actions{display:flex;gap:8px;margin-top:12px}
+.suggestion-actions button{padding:6px 12px;border-radius:var(--radius);font-size:11.5px;font-weight:500;border:1px solid var(--border);transition:all .15s}
+.sug-accept{color:var(--success)}
+.sug-accept:hover{background:var(--success-soft);border-color:var(--success)}
+.sug-reject{color:var(--danger)}
+.sug-reject:hover{background:var(--danger-soft);border-color:var(--danger)}
+.sug-edit{color:var(--blue)}
+.sug-edit:hover{background:var(--blue-soft);border-color:var(--blue)}
+
+/* ─── PROJECTS VIEW ─── */
+.projects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:var(--space-md)}
+.project-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);transition:all .18s;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.project-card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.25)}
+.project-card-head{display:flex;align-items:start;justify-content:space-between;margin-bottom:14px}
+.project-card h3{font-size:15px;font-weight:600;letter-spacing:-.01em}
+.project-area{font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--blue);margin-top:4px}
+.project-stats{display:flex;gap:var(--space-md);margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--border)}
+.project-stat{text-align:center;flex:1}
+.project-stat-num{font-family:var(--font-mono);font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}
+.project-stat-label{font-size:10px;color:var(--muted);margin-top:2px}
+.project-client{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:10px}
+.project-client-dot{width:8px;height:8px;border-radius:50%;background:var(--gold)}
+
+/* ─── ANALYTICS VIEW ─── */
+.analytics-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--space-md);margin-bottom:var(--space-xl)}
+@media(max-width:1400px){.analytics-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.kpi-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.kpi-value{font-family:var(--font-display);font-size:38px;font-weight:600;letter-spacing:-.03em;line-height:1}
+.kpi-change{display:inline-flex;align-items:center;gap:4px;font-family:var(--font-mono);font-size:11px;margin-top:8px;padding:2px 6px;border-radius:4px}
+.kpi-change.up{color:var(--success);background:var(--success-soft)}
+.kpi-change.down{color:var(--danger);background:var(--danger-soft)}
+.chart-container{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md);margin-bottom:var(--space-xl)}
+@media(max-width:1200px){.chart-container{grid-template-columns:1fr}}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:var(--space-lg);box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.chart-title{font-size:14px;font-weight:600;margin-bottom:16px;letter-spacing:-.01em}
+.chart-placeholder{height:200px;display:flex;align-items:end;gap:4px;padding-top:20px}
+.chart-bar{flex:1;background:var(--blue);border-radius:4px 4px 0 0;min-width:0;transition:height .3s ease;position:relative}
+.chart-bar:hover{background:color-mix(in oklch,var(--blue) 80%,white)}
+.chart-bar-label{position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);font-family:var(--font-mono);font-size:9px;color:var(--muted);white-space:nowrap}
+.score-ring{display:flex;align-items:center;gap:20px;margin-top:12px}
+.ring{width:120px;height:120px;position:relative;flex-shrink:0}
+.ring svg{transform:rotate(-90deg)}
+.ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-value{font-family:var(--font-display);font-size:32px;font-weight:600;line-height:1}
+.ring-name{font-size:10px;color:var(--muted);margin-top:2px}
+.score-detail{font-size:12px;color:var(--muted);line-height:1.7}
+.score-detail strong{color:var(--fg);font-weight:500}
+
+/* ─── SETTINGS VIEW ─── */
+.settings-section{margin-bottom:var(--space-xl)}
+.settings-section h2{font-size:16px;font-weight:600;letter-spacing:-.01em;margin-bottom:var(--space-lg)}
+.connector-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:var(--space-sm)}
+.connector-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 22px;display:flex;align-items:center;gap:var(--space-md);box-shadow:0 1px 3px rgba(0,0,0,.1);transition:all .15s}
+.connector-card:hover{border-color:var(--border-strong)}
+.connector-icon{width:40px;height:40px;border-radius:var(--radius);display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.connector-icon.outlook{background:rgba(0,120,212,.15);color:#0078D4}
+.connector-icon.slack{background:rgba(74,21,75,.15);color:#E01E5A}
+.connector-icon.granola{background:rgba(255,183,77,.15);color:#FFB74D}
+.connector-icon.hubspot{background:rgba(255,122,89,.15);color:#FF7A59}
+.connector-icon.github{background:var(--chip-bg);color:var(--fg)}
+.connector-icon.gdrive{background:rgba(66,133,244,.15);color:#4285F4}
+.connector-info{flex:1;min-width:0}
+.connector-name{font-size:13px;font-weight:600}
+.connector-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:3px}
+.connector-status .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.connector-status .dot.green{background:var(--success)}
+.connector-status .dot.amber{background:var(--warning)}
+.connector-status .dot.red{background:var(--danger)}
+.connector-status .dot.gray{background:var(--muted)}
+.connector-action{flex-shrink:0}
+.connector-action button{padding:7px 14px;border-radius:var(--radius);font-size:11.5px;font-weight:500;border:1px solid var(--border);color:var(--muted);transition:all .15s}
+.connector-action button:hover{border-color:var(--fg);color:var(--fg);background:rgba(148,163,210,.06)}
+.connector-action button.connect{color:var(--blue);border-color:var(--blue)}
+.connector-action button.reconnect{color:var(--warning);border-color:var(--warning)}
+.sync-log{margin-top:20px}
+.sync-log-row{display:grid;grid-template-columns:140px 1fr 80px 80px 60px;gap:var(--space-md);padding:12px 16px;font-size:12.5px;align-items:center;border-bottom:1px solid var(--border)}
+.sync-log-row.header{color:var(--muted);font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.sync-status-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:500}
+.pill-ok{background:var(--success-soft);color:var(--success)}
+.pill-warn{background:var(--warning-soft);color:var(--warning)}
+.pill-err{background:var(--danger-soft);color:var(--danger)}
+
+/* scoring weights editor */
+.weight-row{display:grid;grid-template-columns:180px 1fr 60px;gap:var(--space-md);align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.weight-label{font-size:13px;font-weight:500}
+.weight-bar{height:6px;background:var(--overlay);border-radius:3px;position:relative;cursor:pointer}
+.weight-bar-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .2s}
+.weight-value{font-family:var(--font-mono);font-size:12px;color:var(--muted);text-align:right}
+.token-budget{display:flex;gap:24px;margin-top:16px}
+.token-meter{flex:1}
+.token-meter-label{font-size:12px;color:var(--muted);margin-bottom:6px}
+.token-meter-bar{height:8px;background:var(--overlay);border-radius:4px;overflow:hidden}
+.token-meter-fill{height:100%;border-radius:4px}
+
+/* ─── COMMAND PALETTE ─── */
+.cmd-overlay{position:fixed;inset:0;background:rgba(5,8,20,.6);z-index:100;display:none;align-items:start;justify-content:center;padding-top:18vh;backdrop-filter:blur(12px)}
+.cmd-overlay.open{display:flex}
+.cmd-box{width:600px;max-height:440px;background:rgba(20,29,51,.96);backdrop-filter:blur(40px)saturate(1.6);border:1px solid var(--border-strong);border-radius:var(--radius-xl);box-shadow:0 24px 80px rgba(0,0,0,.5),0 0 0 1px rgba(91,123,255,.1);overflow:hidden;animation:cmdIn .14s ease}
+@keyframes cmdIn{from{opacity:0;transform:scale(.98)translateY(-8px)}to{opacity:1;transform:scale(1)translateY(0)}}
+.cmd-input-wrap{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--border)}
+.cmd-input-wrap svg{width:18px;height:18px;color:var(--muted);flex-shrink:0}
+.cmd-input{flex:1;font-size:15px;background:none;padding:0}
+.cmd-input::placeholder{color:var(--muted)}
+.cmd-results{overflow-y:auto;max-height:340px;padding:10px}
+.cmd-group-label{font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px}
+.cmd-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius);cursor:pointer;font-size:13.5px;transition:all .1s}
+.cmd-item:hover,.cmd-item.selected{background:var(--overlay)}
+.cmd-item svg{width:16px;height:16px;color:var(--muted)}
+.cmd-item .cmd-shortcut{margin-left:auto;display:flex;gap:3px}
+.cmd-footer{display:flex;align-items:center;gap:var(--space-md);padding:10px 20px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.cmd-footer span{display:flex;align-items:center;gap:4px}
+
+/* ─── FOCUS SCORE BADGE ─── */
+.focus-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--gold-soft);border:1px solid color-mix(in oklch,var(--gold) 20%,transparent);border-radius:99px;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--gold)}
+
+/* ─── EMPTY / STATUS STATES ─── */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;color:var(--muted)}
+.empty-state svg{width:48px;height:48px;margin-bottom:16px;opacity:.3}
+.empty-state p{font-size:14px;max-width:28ch}
+
+/* Transitions */
+.fade-in{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Task complete animation */
+.task-row.completing{animation:taskComplete .25s ease forwards}
+@keyframes taskComplete{to{opacity:.3;transform:translateX(8px)}}
+
+/* ─── TOAST NOTIFICATIONS ─── */
+.toast{position:fixed;bottom:24px;right:24px;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);font-size:13px;color:var(--fg);box-shadow:0 8px 32px rgba(0,0,0,.3);z-index:200;animation:toastIn .2s ease,toastOut .2s ease 2.6s forwards;display:flex;align-items:center;gap:10px}
+.toast .toast-icon{font-size:16px}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateY(12px)}}
+
+/* ─── TASK DETAIL PANEL ─── */
+.task-row.expanded{background:var(--overlay);border-color:var(--border-strong)}
+.task-row.expanded .task-evidence{display:block;position:relative;left:0;top:0;margin-top:10px;grid-column:1/-1;box-shadow:none;background:var(--chip-bg);max-width:100%}
+
+/* ─── TOGGLE BUTTON GROUP ─── */
+.btn-group{display:flex;gap:0}
+.btn-group .topbar-btn{border-radius:0;border:1px solid var(--border)}
+.btn-group .topbar-btn:first-child{border-radius:var(--radius) 0 0 var(--radius)}
+.btn-group .topbar-btn:last-child{border-radius:0 var(--radius) var(--radius) 0}
+.btn-group .topbar-btn.active{background:var(--blue-soft);color:var(--blue);border-color:var(--blue)}
+
+/* ─── SCORE BREAKDOWN TOOLTIP ─── */
+.score-tooltip{position:absolute;right:0;top:100%;z-index:30;background:var(--raised);border:1px solid var(--border-strong);border-radius:var(--radius-lg);padding:16px;min-width:240px;box-shadow:0 16px 48px rgba(0,0,0,.4);display:none;font-size:12px}
+.task-row:hover .score-tooltip{display:block}
+.score-tooltip h4{font-size:11px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px}
+.score-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.score-bar-label{width:80px;font-size:11px;color:var(--muted)}
+.score-bar-track{flex:1;height:4px;background:var(--overlay);border-radius:2px}
+.score-bar-fill{height:100%;border-radius:2px;transition:width .3s}
+.score-bar-val{font-family:var(--font-mono);font-size:11px;width:24px;text-align:right;color:var(--fg)}
+
+/* ─── HELP / INFO PANEL ─── */
+.help-panel{position:fixed;right:0;top:0;bottom:0;width:400px;background:var(--surface);border-left:1px solid var(--border);z-index:60;transform:translateX(100%);transition:transform .2s ease;overflow-y:auto;padding:var(--space-xl);box-shadow:-8px 0 32px rgba(0,0,0,.2)}
+.help-panel.open{transform:translateX(0)}
+.help-panel h2{font-size:18px;font-weight:600;margin-bottom:var(--space-md);letter-spacing:-.02em}
+.help-panel h3{font-size:14px;font-weight:600;margin:var(--space-lg) 0 var(--space-sm);color:var(--blue)}
+.help-panel p,.help-panel li{font-size:13px;line-height:1.7;color:var(--muted)}
+.help-panel ul{padding-left:18px;margin-bottom:var(--space-md)}
+.help-panel .help-close{position:absolute;top:16px;right:16px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:var(--muted);transition:all .12s}
+.help-panel .help-close:hover{background:var(--overlay);color:var(--fg)}
+.help-kbd-grid{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:var(--space-sm)}
+.help-kbd-grid .kbd{min-width:28px}
+.help-kbd-grid span:nth-child(even){color:var(--muted);font-size:12px}
+
+/* ─── INFO TOOLTIP ─── */
+.info-trigger{position:relative;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--chip-bg);border:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s ease;flex-shrink:0}
+.info-trigger:hover{background:var(--blue);border-color:var(--blue);color:#fff}
+.info-tooltip{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);width:320px;padding:14px 16px;background:var(--raised);border:1px solid var(--border-strong);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,.4);font-size:12.5px;color:var(--fg);line-height:1.6;opacity:0;visibility:hidden;transition:all .15s ease;z-index:50}
+.info-tooltip::before{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:var(--border-strong)}
+.info-tooltip::after{content:'';position:absolute;top:-5px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:var(--raised)}
+.info-trigger:hover .info-tooltip{opacity:1;visibility:visible}
+.info-tooltip strong{color:var(--gold)}
+.info-tooltip .kbd{margin:0 2px}
+/* Section explainer (inline helper text) */
+.section-explainer{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:var(--space-sm);max-width:600px}
+.section-explainer strong{color:var(--fg)}
+
+/* ─── NOTIFICATION CENTER ─── */
+.notif-panel{position:fixed;right:16px;top:calc(var(--topbar-h) + 8px);width:380px;max-height:480px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 16px 48px rgba(0,0,0,.3);z-index:55;display:none;overflow:hidden;animation:cmdIn .14s ease}
+.notif-panel.open{display:block}
+.notif-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border)}
+.notif-header h3{font-size:14px;font-weight:600}
+.notif-list{overflow-y:auto;max-height:400px;padding:8px}
+.notif-item{display:flex;gap:12px;padding:12px;border-radius:var(--radius);cursor:pointer;transition:background .1s}
+.notif-item:hover{background:var(--overlay)}
+.notif-item.unread{border-left:3px solid var(--blue)}
+.notif-icon{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex-shrink:0;font-size:14px}
+.notif-body{flex:1;min-width:0}
+.notif-body strong{font-size:13px;font-weight:500;display:block}
+.notif-body p{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.5}
+.notif-time{font-family:var(--font-mono);font-size:10px;color:var(--muted);margin-top:4px}
+
+/* ─── QUICK-ADD MODAL ─── */
+.quick-add-overlay{position:fixed;inset:0;background:rgba(5,8,20,.5);z-index:100;display:none;align-items:start;justify-content:center;padding-top:16vh;backdrop-filter:blur(8px)}
+.quick-add-overlay.open{display:flex}
+.quick-add{width:560px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--radius-xl);box-shadow:0 24px 80px rgba(0,0,0,.4);overflow:hidden;animation:cmdIn .14s ease;padding:var(--space-lg)}
+.quick-add h3{font-size:16px;font-weight:600;margin-bottom:var(--space-md)}
+.quick-add-field{margin-bottom:var(--space-md)}
+.quick-add-field label{display:block;font-size:12px;font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px}
+.quick-add-field input,.quick-add-field textarea,.quick-add-field select{width:100%;padding:10px 14px;background:var(--overlay);border:1px solid var(--border);border-radius:var(--radius);color:var(--fg);font-size:14px;font-family:var(--font-body);transition:border .12s}
+.quick-add-field input:focus,.quick-add-field textarea:focus,.quick-add-field select:focus{border-color:var(--blue);outline:none}
+.quick-add-field textarea{resize:vertical;min-height:60px}
+.quick-add-field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 5l3 3 3-3' fill='none' stroke='%238A99C2' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.quick-add-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:var(--space-lg);padding-top:var(--space-md);border-top:1px solid var(--border)}
+.quick-add-actions button{padding:8px 20px;border-radius:var(--radius);font-size:13px;font-weight:500;transition:all .12s}
+.btn-cancel{border:1px solid var(--border);color:var(--muted)}
+.btn-cancel:hover{border-color:var(--fg);color:var(--fg)}
+.btn-primary{background:var(--blue);color:#fff;border:none}
+.btn-primary:hover{filter:brightness(1.1)}
+
+/* ─── FOCUS TIMER ─── */
+.focus-timer{position:fixed;bottom:24px;left:calc(var(--sidebar-w) + 24px);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);padding:14px 20px;display:none;align-items:center;gap:16px;box-shadow:0 8px 32px rgba(0,0,0,.25);z-index:40;animation:toastIn .2s ease}
+.focus-timer.active{display:flex}
+.focus-timer-time{font-family:var(--font-mono);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.focus-timer-label{font-size:12px;color:var(--muted)}
+.focus-timer-task{font-size:13px;font-weight:500;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.focus-timer-controls{display:flex;gap:6px}
+.focus-timer-controls button{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border);color:var(--muted);transition:all .12s}
+.focus-timer-controls button:hover{border-color:var(--fg);color:var(--fg)}
+
+/* ─── ACTIVITY FEED ─── */
+.activity-feed{margin-top:var(--space-lg)}
+.activity-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.activity-item:last-child{border-bottom:none}
+.activity-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.activity-text{flex:1;line-height:1.6;color:var(--muted)}
+.activity-text strong{color:var(--fg);font-weight:500}
+.activity-time{font-family:var(--font-mono);font-size:10px;color:var(--muted);white-space:nowrap;margin-top:3px}
+
+/* ─── EXPORT DROPDOWN ─── */
+.export-menu{position:absolute;right:0;top:100%;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,.3);z-index:30;min-width:200px;padding:6px;display:none}
+.export-menu.open{display:block}
+.export-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);font-size:13px;cursor:pointer;transition:background .08s}
+.export-item:hover{background:var(--overlay)}
+.export-item svg{width:16px;height:16px;color:var(--muted)}
+
+/* ─── FOCUS-VISIBLE & ACCESSIBILITY ─── */
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px;border-radius:var(--radius)}
+button:focus-visible,a:focus-visible,.sidebar-item:focus-visible,.cmd-item:focus-visible,.task-checkbox:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+::selection{background:rgba(75,111,255,.35);color:var(--fg-bright)}
+
+/* ─── ACTIVE / PRESSED STATES ─── */
+.topbar-btn:active{transform:scale(.97)}
+.sidebar-item:active{transform:scale(.98)}
+.suggestion-actions button:active{transform:scale(.95)}
+.connector-action button:active{transform:scale(.96)}
+.task-checkbox:active{transform:scale(.9)}
+.cmd-item:active{background:var(--raised)}
+
+/* ─── SCROLL BEHAVIOR ─── */
+.main{scroll-behavior:smooth}
+
+/* ─── SPIN KEYFRAME ─── */
+@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* ─── RESPONSIVE: SIDEBAR COLLAPSE ≤768px ─── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:45;backdrop-filter:blur(2px)}
+.sidebar-overlay.open{display:block}
+
+/* ─── TABLET ─── */
+@media(max-width:1024px){
+  .main{padding:var(--space-lg) var(--space-lg) var(--space-2xl)}
+  .topbar{padding:0 var(--space-lg)}
+  .today-grid{grid-template-columns:1fr}
+  .analytics-grid{grid-template-columns:repeat(2,1fr)}
+  .projects-grid{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+  .topbar-search{min-width:180px}
+}
+
+/* ─── MOBILE ─── */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr;grid-template-rows:var(--topbar-h) 1fr}
+  .sidebar{position:fixed;left:0;top:0;bottom:0;width:280px;z-index:50;transform:translateX(-100%);transition:transform .2s ease}
+  .sidebar.open{transform:translateX(0)}
+  .topbar{grid-column:1;padding:0 var(--space-md);gap:var(--space-xs)}
+  .topbar-left{gap:var(--space-xs)}
+  .topbar-left h1{font-size:14px}
+  .topbar-right{gap:4px}
+  .topbar-btn{padding:8px}
+  .topbar-btn span:not(.notif-badge){display:none}
+  .topbar-search{display:none}
+  .mobile-menu{display:flex!important}
+  .main{grid-column:1;padding:var(--space-md) var(--space-md) 40px}
+  .today-greeting{font-size:22px}
+  .today-grid{grid-template-columns:1fr}
+  .kpi-card{padding:var(--space-md)}
+  .kpi-card .kpi-value{font-size:28px}
+  .analytics-grid{grid-template-columns:1fr}
+  .chart-container{grid-template-columns:1fr}
+  .projects-grid{grid-template-columns:1fr}
+  .connector-grid{grid-template-columns:1fr}
+  .sync-log-row{grid-template-columns:1fr;gap:4px;font-size:11px}
+  .sync-log-row.header{display:none}
+  .task-row{gap:var(--space-sm);padding:10px var(--space-md)}
+  .task-meta{flex-wrap:wrap;gap:6px}
+  .task-deep-link{display:none}
+  .score-tooltip{right:auto;left:0;min-width:200px;max-width:calc(100vw - 40px)}
+  .suggestion-card{padding:var(--space-md)}
+  .sug-actions{flex-wrap:wrap;gap:6px}
+  .sug-actions button{flex:1;min-width:0;font-size:11px;padding:8px 10px}
+  .sug-actions button .kbd{display:none}
+  .agenda-item{grid-template-columns:48px 1fr;gap:10px}
+  .info-tooltip{width:280px;left:auto;right:0;transform:none}
+  .info-tooltip::before,.info-tooltip::after{left:auto;right:20px;transform:none}
+  .section-explainer{font-size:12px;color:var(--muted);line-height:1.5;padding:10px 12px;background:var(--chip-bg);border-radius:var(--radius);margin-bottom:var(--space-sm)}
+  .help-panel{width:100%;max-width:100%}
+  .notif-panel{right:8px;left:8px;width:auto;max-height:70vh}
+  .cmd-box{width:calc(100vw - 32px);max-width:560px}
+  .quick-add{width:calc(100vw - 32px);max-width:520px}
+  .quick-add-overlay{padding-top:10vh}
+  .focus-timer{bottom:12px;right:12px;padding:10px 14px;gap:10px}
+  .focus-timer-task{max-width:120px}
+  .export-menu{right:-40px;min-width:180px}
+  .btn-group{flex-wrap:wrap}
+  .btn-group .topbar-btn{font-size:11px;padding:6px 10px}
+  .view-header{flex-direction:column;align-items:flex-start;gap:var(--space-sm)}
+  .chart-card{padding:var(--space-md)}
+  .activity-feed .activity-item{font-size:12px}
+}
+
+/* ─── SMALL MOBILE ─── */
+@media(max-width:390px){
+  .main{padding:var(--space-sm) var(--space-sm) 32px}
+  .topbar-btn{padding:6px}
+  .today-greeting{font-size:18px}
+  .kpi-card .kpi-value{font-size:24px}
+  .task-row{padding:8px var(--space-sm)}
+  .suggestion-card{padding:var(--space-sm)}
+  .cmd-box{width:calc(100vw - 16px)}
+  .quick-add{width:calc(100vw - 16px)}
+}
+
+/* ─── REDUCED MOTION ─── */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+
+/* ─── LOADING SKELETON ─── */
+.skeleton{background:linear-gradient(90deg,var(--surface) 25%,var(--overlay) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.5s ease infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ─── TABULAR FIGURES ON ALL MONO ─── */
+[class*="num"],[class*="score"],[class*="stat-num"]{font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar" data-od-id="sidebar" role="navigation" aria-label="Navegación principal">
+    <div class="sidebar-brand">
+      <div class="logo-mark">A</div>
+      Atlas
+    </div>
+    <div class="sidebar-item active" data-view="today" onclick="switchView('today')" tabindex="0" role="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      Hoy
+      <span class="badge-muted">5</span>
+    </div>
+    <div class="sidebar-item" data-view="inbox" onclick="switchView('inbox')" tabindex="0" role="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M4 13h5l2 2h2l2-2h5"/></svg>
+      Sugerencias
+      <span class="badge">7</span>
+    </div>
+    <div class="sidebar-item" data-view="projects" onclick="switchView('projects')" tabindex="0" role="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4m0 0l9-4m-9 4v10"/></svg>
+      Proyectos
+    </div>
+    <div class="sidebar-item" data-view="analytics" onclick="switchView('analytics')" tabindex="0" role="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 16v4M10 12v8M14 8v12M18 4v16"/></svg>
+      Analytics
+    </div>
+    <div class="sidebar-section">Sistema</div>
+    <div class="sidebar-item" data-view="settings" onclick="switchView('settings')" tabindex="0" role="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Settings
+    </div>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-sync">
+        <span class="dot"></span>
+        Última sync hace 12 min
+      </div>
+      <div class="sidebar-kbd" onclick="openCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        Búsqueda rápida
+        <span class="kbd" style="margin-left:auto">⌘K</span>
+      </div>
+      <div class="sidebar-kbd" onclick="toggleHelp()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:14px;height:14px"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        Ayuda y atajos
+        <span class="kbd" style="margin-left:auto">?</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- TOPBAR -->
+  <div class="sidebar-overlay" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('open')"></div>
+  <header class="topbar" data-od-id="topbar">
+    <div class="topbar-left">
+      <button class="topbar-btn mobile-menu" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-overlay').classList.toggle('open')" aria-label="Menú" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:20px;height:20px"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+      </button>
+      <span class="topbar-title" id="topbar-title">Hoy</span>
+      <span class="focus-badge" id="focus-badge">
+        <svg viewBox="0 0 16 16" fill="currentColor" style="width:12px;height:12px"><circle cx="8" cy="8" r="6"/></svg>
+        Focus 72
+      </span>
+    </div>
+    <div class="topbar-right">
+      <button class="topbar-btn" onclick="triggerSync()" title="Sync manual (⌘⇧S)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" id="sync-icon"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sync
+      </button>
+      <div class="topbar-search" onclick="openCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+        Buscar o crear tarea…
+        <span class="kbd" style="margin-left:auto">⌘K</span>
+      </div>
+      <button class="topbar-btn" onclick="toggleNotifs()" title="Notificaciones" style="position:relative">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:18px;height:18px"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+        <span style="position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--danger);border-radius:50%"></span>
+      </button>
+      <div style="position:relative">
+        <button class="topbar-btn" onclick="toggleExport()" title="Exportar informe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:18px;height:18px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </button>
+        <div class="export-menu" id="export-menu">
+          <div class="export-item" onclick="exportReport('md')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
+            Exportar como Markdown
+          </div>
+          <div class="export-item" onclick="exportReport('pdf')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+            Exportar como PDF
+          </div>
+          <div class="export-item" onclick="exportReport('csv')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+            Exportar tareas CSV
+          </div>
+        </div>
+      </div>
+      <button class="topbar-btn" onclick="toggleTheme()" id="theme-btn" title="Cambiar tema" aria-label="Cambiar tema">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:18px;height:18px" id="theme-icon"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <div class="topbar-avatar">TF</div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" role="main" aria-label="Contenido principal">
+
+    <!-- ═══ TODAY VIEW ═══ -->
+    <div class="view active fade-in" id="view-today" data-od-id="view-today">
+      <div class="today-header">
+        <div class="today-greeting">Martes 8 de julio. <strong>Tienes 4.5h de foco disponibles.</strong></div>
+        <div class="today-sub">12 tareas abiertas · 4 reuniones · 3 esperando respuesta</div>
+        <div class="section-explainer" style="margin-top:var(--space-md)">Atlas analiza tus 6 canales conectados y selecciona las <strong>5 tareas con mayor score</strong> para tu día. El score se recalcula cada hora. Pasa el cursor sobre el número para ver el desglose.</div>
+      </div>
+      <div class="today-grid">
+        <!-- LEFT: TASKS -->
+        <div>
+          <div class="section-head">
+            <span class="section-title">Top 5 del día</span>
+            <span class="section-meta">Score · breakdown en hover</span>
+          </div>
+          <div class="task-list" id="top5-list">
+            <div class="task-row top5" onclick="toggleTask(this)">
+              <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+              <div class="task-content">
+                <div class="task-title">Enviar propuesta comercial a Femsa</div>
+                <div class="task-meta-row">
+                  <span class="task-chip area">Ventas</span>
+                  <span class="task-chip client">Femsa</span>
+                  <span class="task-chip due">Hoy 18:00</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <span class="task-score">94</span>
+                <span class="task-deep-link" title="Abrir en Outlook">↗</span>
+                <div class="score-tooltip">
+                  <h4>Desglose del Score</h4>
+                  <div class="score-bar-row"><span class="score-bar-label">Deadline</span><div class="score-bar-track"><div class="score-bar-fill" style="width:96%;background:var(--danger)"></div></div><span class="score-bar-val">24</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Impacto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:90%;background:var(--gold)"></div></div><span class="score-bar-val">18</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Requester</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">15</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eisenhower</span><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--success)"></div></div><span class="score-bar-val">10</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Pareto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:90%;background:var(--warning)"></div></div><span class="score-bar-val">9</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eat the Frog</span><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--muted)"></div></div><span class="score-bar-val">6</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Antigüedad</span><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--muted)"></div></div><span class="score-bar-val">5</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Context</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">4</span></div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--muted)">Σ = <strong style="color:var(--gold)">94/100</strong> · Última actualización hace 2h</div>
+                </div>
+              </div>
+              <div class="task-evidence">"Francisco, ¿me podrías enviar la propuesta actualizada hoy antes de las 6?" — Francisco Garza, 7 jul 14:23</div>
+            </div>
+            <div class="task-row top5" onclick="toggleTask(this)">
+              <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+              <div class="task-content">
+                <div class="task-title">Revisar contrato de partnership con Oracle</div>
+                <div class="task-meta-row">
+                  <span class="task-chip area">Alianzas</span>
+                  <span class="task-chip client">Oracle</span>
+                  <span class="task-chip due">Mañana</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <span class="task-score">87</span>
+                <span class="task-deep-link" title="Abrir en Google Drive">↗</span>
+                <div class="score-tooltip">
+                  <h4>Desglose del Score</h4>
+                  <div class="score-bar-row"><span class="score-bar-label">Deadline</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--warning)"></div></div><span class="score-bar-val">20</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Impacto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:95%;background:var(--gold)"></div></div><span class="score-bar-val">19</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Requester</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--blue)"></div></div><span class="score-bar-val">12</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eisenhower</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--success)"></div></div><span class="score-bar-val">12</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Pareto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--warning)"></div></div><span class="score-bar-val">8</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eat the Frog</span><div class="score-bar-track"><div class="score-bar-fill" style="width:88%;background:var(--muted)"></div></div><span class="score-bar-val">7</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Antigüedad</span><div class="score-bar-track"><div class="score-bar-fill" style="width:67%;background:var(--muted)"></div></div><span class="score-bar-val">5</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Context</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">4</span></div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--muted)">Σ = <strong style="color:var(--gold)">87/100</strong> · Última actualización hace 4h</div>
+                </div>
+              </div>
+              <div class="task-evidence">"El contrato está listo para revisión en el Drive compartido. Necesito tus comentarios antes del miércoles." — Legal, 6 jul</div>
+            </div>
+            <div class="task-row top5" onclick="toggleTask(this)">
+              <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+              <div class="task-content">
+                <div class="task-title">Preparar deck para board meeting del viernes</div>
+                <div class="task-meta-row">
+                  <span class="task-chip area">Operaciones</span>
+                  <span class="task-chip due">Vie 10</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <span class="task-score">82</span>
+                <span class="task-deep-link" title="Abrir en Granola">↗</span>
+                <div class="score-tooltip">
+                  <h4>Desglose del Score</h4>
+                  <div class="score-bar-row"><span class="score-bar-label">Deadline</span><div class="score-bar-track"><div class="score-bar-fill" style="width:72%;background:var(--warning)"></div></div><span class="score-bar-val">18</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Impacto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--gold)"></div></div><span class="score-bar-val">16</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Requester</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">15</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eisenhower</span><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--success)"></div></div><span class="score-bar-val">10</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Pareto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--warning)"></div></div><span class="score-bar-val">6</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eat the Frog</span><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--muted)"></div></div><span class="score-bar-val">6</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Antigüedad</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--muted)"></div></div><span class="score-bar-val">7</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Context</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">4</span></div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--muted)">Σ = <strong style="color:var(--gold)">82/100</strong> · Última actualización hace 8h</div>
+                </div>
+              </div>
+              <div class="task-evidence">"Recordar preparar la presentación para el board con métricas actualizadas de Q2." — Nota de Granola, 5 jul</div>
+            </div>
+            <div class="task-row top5" onclick="toggleTask(this)">
+              <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+              <div class="task-content">
+                <div class="task-title">Follow-up con Francisco Garza — reunión inversores</div>
+                <div class="task-meta-row">
+                  <span class="task-chip area">Networking</span>
+                  <span class="task-chip client">Garza Capital</span>
+                  <span class="task-chip" style="color:var(--warning)">⏳ Esperando</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <span class="task-score">76</span>
+                <span class="task-deep-link" title="Abrir en Slack">↗</span>
+                <div class="score-tooltip">
+                  <h4>Desglose del Score</h4>
+                  <div class="score-bar-row"><span class="score-bar-label">Deadline</span><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--warning)"></div></div><span class="score-bar-val">15</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Impacto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:70%;background:var(--gold)"></div></div><span class="score-bar-val">14</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Requester</span><div class="score-bar-track"><div class="score-bar-fill" style="width:87%;background:var(--blue)"></div></div><span class="score-bar-val">13</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eisenhower</span><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--success)"></div></div><span class="score-bar-val">10</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Pareto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%;background:var(--warning)"></div></div><span class="score-bar-val">8</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eat the Frog</span><div class="score-bar-track"><div class="score-bar-fill" style="width:63%;background:var(--muted)"></div></div><span class="score-bar-val">5</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Antigüedad</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--muted)"></div></div><span class="score-bar-val">7</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Context</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--blue)"></div></div><span class="score-bar-val">4</span></div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--muted)">Σ = <strong style="color:var(--gold)">76/100</strong> · Última actualización hace 1d</div>
+                </div>
+              </div>
+              <div class="task-evidence">"Quedamos de confirmar si se arma la reunión con los inversores de Monterrey. Te escribo el lunes." — Slack DM, 4 jul</div>
+            </div>
+            <div class="task-row top5" onclick="toggleTask(this)">
+              <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+              <div class="task-content">
+                <div class="task-title">Entrevistar candidato Sr. Engineer — 10:00</div>
+                <div class="task-meta-row">
+                  <span class="task-chip area">Reclutamiento</span>
+                  <span class="task-chip due">Hoy 10:00</span>
+                </div>
+              </div>
+              <div class="task-right">
+                <span class="task-score">71</span>
+                <span class="task-deep-link" title="Abrir en Outlook Calendar">↗</span>
+                <div class="score-tooltip">
+                  <h4>Desglose del Score</h4>
+                  <div class="score-bar-row"><span class="score-bar-label">Deadline</span><div class="score-bar-track"><div class="score-bar-fill" style="width:100%;background:var(--warning)"></div></div><span class="score-bar-val">25</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Impacto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:var(--gold)"></div></div><span class="score-bar-val">10</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Requester</span><div class="score-bar-track"><div class="score-bar-fill" style="width:53%;background:var(--blue)"></div></div><span class="score-bar-val">8</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eisenhower</span><div class="score-bar-track"><div class="score-bar-fill" style="width:83%;background:var(--success)"></div></div><span class="score-bar-val">10</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Pareto</span><div class="score-bar-track"><div class="score-bar-fill" style="width:60%;background:var(--warning)"></div></div><span class="score-bar-val">6</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Eat the Frog</span><div class="score-bar-track"><div class="score-bar-fill" style="width:50%;background:var(--muted)"></div></div><span class="score-bar-val">4</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Antigüedad</span><div class="score-bar-track"><div class="score-bar-fill" style="width:67%;background:var(--muted)"></div></div><span class="score-bar-val">5</span></div>
+                  <div class="score-bar-row"><span class="score-bar-label">Context</span><div class="score-bar-track"><div class="score-bar-fill" style="width:75%;background:var(--blue)"></div></div><span class="score-bar-val">3</span></div>
+                  <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:11px;color:var(--muted)">Σ = <strong style="color:var(--gold)">71/100</strong> · Última actualización hace 2d</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsed remaining -->
+          <div class="tasks-collapsed">
+            <div class="tasks-toggle" onclick="toggleCollapsed(this)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+              7 tareas más en el backlog
+            </div>
+            <div class="collapsed-list">
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Actualizar pipeline en HubSpot — deals Q3</div>
+                  <div class="task-meta-row"><span class="task-chip area">Ventas</span><span class="task-chip due">Jue 10</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">64</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Revisar PR #247 — refactor del auth module</div>
+                  <div class="task-meta-row"><span class="task-chip area">Operaciones</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">58</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Agendar cena con equipo marketing — team building</div>
+                  <div class="task-meta-row"><span class="task-chip area">Marketing</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">45</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Publicar artículo sobre AI en ventas B2B</div>
+                  <div class="task-meta-row"><span class="task-chip area">Contenido</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">42</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Configurar respaldo automático de credenciales</div>
+                  <div class="task-meta-row"><span class="task-chip area">Administración</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">38</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Renovar suscripción de dominio niuro.mx</div>
+                  <div class="task-meta-row"><span class="task-chip area">Administración</span><span class="task-chip due">Jul 15</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">34</span></div>
+              </div>
+              <div class="task-row">
+                <div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+                <div class="task-content">
+                  <div class="task-title">Correr — 5km mínimo</div>
+                  <div class="task-meta-row"><span class="task-chip area">Personal</span></div>
+                </div>
+                <div class="task-right"><span class="task-score">28</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: AGENDA + WAITING -->
+        <div class="agenda-panel">
+          <div class="agenda-card">
+            <div class="section-head"><span class="section-title">Agenda del día</span><span class="section-meta">4 eventos</span></div>
+            <div class="agenda-list">
+              <div class="agenda-item">
+                <span class="agenda-time">09:00</span>
+                <div><div class="agenda-event">Daily standup</div><div class="agenda-event-meta">Zoom · Equipo Niuro · 30 min</div></div>
+              </div>
+              <div class="agenda-item agenda-block">
+                <span class="agenda-time">09:30</span>
+                <div><div class="agenda-event">◆ Deep work — propuesta Femsa</div><div class="agenda-event-meta">Bloque propuesto por Atlas</div></div>
+              </div>
+              <div class="agenda-item">
+                <span class="agenda-time">10:00</span>
+                <div><div class="agenda-event">Entrevista Sr. Engineer</div><div class="agenda-event-meta">Google Meet · Mariana López · 45 min</div></div>
+              </div>
+              <div class="agenda-item">
+                <span class="agenda-time">14:00</span>
+                <div><div class="agenda-event">Sync con cliente Femsa</div><div class="agenda-event-meta">Teams · Francisco Garza +2 · 30 min</div></div>
+              </div>
+              <div class="agenda-item agenda-block">
+                <span class="agenda-time">15:00</span>
+                <div><div class="agenda-event">◆ Board deck prep</div><div class="agenda-event-meta">Bloque propuesto por Atlas</div></div>
+              </div>
+              <div class="agenda-item">
+                <span class="agenda-time">16:00</span>
+                <div><div class="agenda-event">1:1 con CTO</div><div class="agenda-event-meta">Oficina · 45 min</div></div>
+              </div>
+            </div>
+            <div class="capacity-bar">
+              <div class="capacity-track"><div class="capacity-fill" style="width:68%;background:linear-gradient(90deg,var(--blue),var(--gold))"></div></div>
+              <div class="capacity-label"><span>4.5h foco</span><span>2.5h reuniones</span><span>68%</span></div>
+            </div>
+          </div>
+
+          <div class="agenda-card">
+            <div class="section-head"><span class="section-title">Esperando respuesta</span><span class="section-meta">3</span></div>
+            <div class="waiting-item">
+              <div class="waiting-icon mail">✉</div>
+              <div><div class="waiting-text"><strong>Carlos Ruiz</strong> — pricing enterprise tier</div><div class="waiting-time">Hace 2 días · Outlook</div></div>
+            </div>
+            <div class="waiting-item">
+              <div class="waiting-icon slack">⌗</div>
+              <div><div class="waiting-text"><strong>Ana Martínez</strong> — assets para landing</div><div class="waiting-time">Hace 1 día · Slack #marketing</div></div>
+            </div>
+            <div class="waiting-item">
+              <div class="waiting-icon mail">✉</div>
+              <div><div class="waiting-text"><strong>Legal Oracle</strong> — revisión de términos</div><div class="waiting-time">Hace 3 días · Outlook</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ INBOX VIEW ═══ -->
+    <div class="view" id="view-inbox" data-od-id="view-inbox">
+      <div class="inbox-header">
+        <div>
+          <h1 style="font-size:20px;font-weight:600;letter-spacing:-.01em">Sugerencias</h1>
+          <div class="inbox-count">7 pendientes de revisión · confianza 0.6–0.8</div>
+        </div>
+        <button class="info-trigger" aria-label="Más información">?
+          <div class="info-tooltip">Los 9 agentes de IA extrajeron estas tareas de tus canales. La <strong>confianza</strong> indica qué tan segura está la IA de que es una tarea real.<br><br><strong>0.6–0.8</strong> = revisión humana<br><strong>0.8+</strong> = auto-creada<br><br>Usa <span class="kbd">A</span> Aceptar · <span class="kbd">X</span> Rechazar · <span class="kbd">E</span> Editar</div>
+        </button>
+        <div class="inbox-shortcuts">
+          <span><span class="kbd">A</span> Aceptar</span>
+          <span><span class="kbd">X</span> Rechazar</span>
+          <span><span class="kbd">E</span> Editar</span>
+          <span><span class="kbd">M</span> Fusionar</span>
+          <span><span class="kbd">J</span><span class="kbd">K</span> Navegar</span>
+        </div>
+      </div>
+      <div id="suggestions-list">
+        <div class="suggestion-row focused">
+          <div class="suggestion-content">
+            <div class="task-title">Responder a Carlos sobre pricing enterprise</div>
+            <div class="task-meta-row"><span class="task-chip area">Ventas</span><span class="task-chip client">TechCorp</span><span class="task-chip">Outlook</span></div>
+            <div class="suggestion-evidence">"Hola Tomás, seguimos esperando la cotización para el plan enterprise. ¿Podrías enviármela esta semana?" — Carlos Ruiz, 6 jul 10:15</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.74</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:74%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Agendar llamada con equipo de producto — roadmap Q3</div>
+            <div class="task-meta-row"><span class="task-chip area">Operaciones</span><span class="task-chip">Slack</span></div>
+            <div class="suggestion-evidence">"@tomas ¿agendamos una call para definir prioridades del Q3? El equipo quiere alinear antes del viernes." — #producto, 7 jul</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.71</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:71%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Enviar resumen ejecutivo a inversores de Serie A</div>
+            <div class="task-meta-row"><span class="task-chip area">Alianzas</span><span class="task-chip">Granola</span></div>
+            <div class="suggestion-evidence">"Acordamos que Tomás envía el one-pager actualizado a los tres fondos antes del viernes." — Acuerdo de reunión, 7 jul</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--success)">0.78</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:78%;background:var(--success)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Revisar docs compartidos — propuesta de alianza Bimbo</div>
+            <div class="task-meta-row"><span class="task-chip area">Alianzas</span><span class="task-chip client">Bimbo</span><span class="task-chip">Google Drive</span></div>
+            <div class="suggestion-evidence">"Te compartí el doc con los términos propuestos. Revísalo cuando puedas." — Notificación Drive, 7 jul</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.66</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:66%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Dar feedback sobre diseño de onboarding v2</div>
+            <div class="task-meta-row"><span class="task-chip area">Operaciones</span><span class="task-chip">Slack</span></div>
+            <div class="suggestion-evidence">"@tomas el equipo de diseño dejó los mockups en Figma. ¿Los revisas para el standup de mañana?" — #design, 7 jul</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.69</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:69%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Follow-up deal Banorte — sin actividad 6 días</div>
+            <div class="task-meta-row"><span class="task-chip area">Ventas</span><span class="task-chip client">Banorte</span><span class="task-chip">HubSpot</span></div>
+            <div class="suggestion-evidence">Deal "Banorte Enterprise License" en etapa Negotiation sin actividad desde el 2 de julio. Contacto: Roberto Hernández.</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.72</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:72%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+        <div class="suggestion-row">
+          <div class="suggestion-content">
+            <div class="task-title">Confirmar asistencia a evento TechStar CDMX</div>
+            <div class="task-meta-row"><span class="task-chip area">Networking</span><span class="task-chip">Outlook</span></div>
+            <div class="suggestion-evidence">"Tomás, ¿confirmas tu asistencia al TechStar Meetup del 15 de julio? Necesitamos saber para reservar tu lugar." — Eventbrite, 5 jul</div>
+            <div class="suggestion-actions">
+              <button class="sug-accept" onclick="acceptSuggestion(this)"><span class="kbd">A</span> Aceptar</button>
+              <button class="sug-reject" onclick="rejectSuggestion(this)"><span class="kbd">X</span> Rechazar</button>
+              <button class="sug-edit" onclick="editSuggestion(this)"><span class="kbd">E</span> Editar y aceptar</button>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="suggestion-confidence" style="color:var(--warning)">0.63</div>
+            <div class="confidence-bar"><div class="confidence-fill" style="width:63%;background:var(--warning)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ PROJECTS VIEW ═══ -->
+    <div class="view" id="view-projects" data-od-id="view-projects">
+      <div class="section-head" style="margin-bottom:24px">
+        <div>
+          <h1 style="font-size:20px;font-weight:600;letter-spacing:-.01em">Proyectos y Clientes</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">10 áreas · 8 proyectos activos · 5 clientes con deals abiertos</div>
+        </div>
+        <div class="btn-group">
+          <button class="topbar-btn" onclick="setToggle(this)" style="border:1px solid var(--border)">Por área</button>
+          <button class="topbar-btn active" onclick="setToggle(this)" style="border:1px solid var(--border)">Por cliente</button>
+        </div>
+      </div>
+      <div class="projects-grid">
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Pipeline Enterprise Q3</h3><div class="project-area">Ventas</div></div>
+            <span class="task-chip client">Femsa · Banorte · TechCorp</span>
+          </div>
+          <div class="project-client"><div class="project-client-dot"></div>Último contacto: hoy — Francisco Garza (Femsa)</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">5</div><div class="project-stat-label">Tareas abiertas</div></div>
+            <div class="project-stat"><div class="project-stat-num">3</div><div class="project-stat-label">Deals activos</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--success)">$420K</div><div class="project-stat-label">Pipeline value</div></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Alianza estratégica Oracle</h3><div class="project-area">Alianzas</div></div>
+            <span class="task-chip client">Oracle</span>
+          </div>
+          <div class="project-client"><div class="project-client-dot" style="background:var(--danger)"></div>Último contacto: hace 3 días — Legal Oracle</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">3</div><div class="project-stat-label">Tareas abiertas</div></div>
+            <div class="project-stat"><div class="project-stat-num">1</div><div class="project-stat-label">Deal activo</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--success)">$180K</div><div class="project-stat-label">Pipeline value</div></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Hiring Q3 — Engineering</h3><div class="project-area">Reclutamiento</div></div>
+          </div>
+          <div class="project-client"><div class="project-client-dot" style="background:var(--blue)"></div>Próxima entrevista: hoy 10:00 — Mariana López</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">2</div><div class="project-stat-label">Tareas abiertas</div></div>
+            <div class="project-stat"><div class="project-stat-num">4</div><div class="project-stat-label">Candidatos</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--blue)">2</div><div class="project-stat-label">Entrevistas esta semana</div></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Board Meeting Q2 Review</h3><div class="project-area">Operaciones</div></div>
+          </div>
+          <div class="project-client"><div class="project-client-dot" style="background:var(--warning)"></div>Deadline: viernes 10 de julio</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">1</div><div class="project-stat-label">Tarea abierta</div></div>
+            <div class="project-stat"><div class="project-stat-num">6</div><div class="project-stat-label">Slides pendientes</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--success)">60%</div><div class="project-stat-label">Progreso</div></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Alianza Bimbo — propuesta inicial</h3><div class="project-area">Alianzas</div></div>
+            <span class="task-chip client">Bimbo</span>
+          </div>
+          <div class="project-client"><div class="project-client-dot" style="background:var(--success)"></div>Doc compartido: hoy — Google Drive</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">1</div><div class="project-stat-label">Tarea abierta</div></div>
+            <div class="project-stat"><div class="project-stat-num">1</div><div class="project-stat-label">Deal activo</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--success)">$95K</div><div class="project-stat-label">Pipeline value</div></div>
+          </div>
+        </div>
+        <div class="project-card">
+          <div class="project-card-head">
+            <div><h3>Content strategy — AI en B2B</h3><div class="project-area">Contenido</div></div>
+          </div>
+          <div class="project-client"><div class="project-client-dot" style="background:var(--muted)"></div>Último artículo: hace 12 días</div>
+          <div class="project-stats">
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--gold)">2</div><div class="project-stat-label">Tareas abiertas</div></div>
+            <div class="project-stat"><div class="project-stat-num">3</div><div class="project-stat-label">Borradores</div></div>
+            <div class="project-stat"><div class="project-stat-num" style="color:var(--blue)">1.2K</div><div class="project-stat-label">Lecturas/mes</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ ANALYTICS VIEW ═══ -->
+    <div class="view" id="view-analytics" data-od-id="view-analytics">
+      <div class="section-head" style="margin-bottom:24px">
+        <div>
+          <h1 style="font-size:20px;font-weight:600;letter-spacing:-.01em">Analytics</h1>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Últimos 30 días · Semana del 1–8 julio</div>
+        </div>
+        <div class="btn-group">
+          <button class="topbar-btn active" onclick="setToggle(this)" style="border:1px solid var(--border)">7 días</button>
+          <button class="topbar-btn" onclick="setToggle(this)" style="border:1px solid var(--border)">30 días</button>
+          <button class="topbar-btn" onclick="setToggle(this)" style="border:1px solid var(--border)">90 días</button>
+        </div>
+      </div>
+      <div class="analytics-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Tareas completadas</div>
+          <div class="kpi-value" style="color:var(--fg)">34</div>
+          <div class="kpi-change up">↑ 12% vs semana anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Detección automática</div>
+          <div class="kpi-value" style="color:var(--blue)">78%</div>
+          <div class="kpi-change up">↑ 5pp vs semana anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Horas deep work</div>
+          <div class="kpi-value" style="color:var(--gold)">22.5<span style="font-size:16px;opacity:.6">h</span></div>
+          <div class="kpi-change down">↓ 3h vs semana anterior</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Precisión de extracción</div>
+          <div class="kpi-value" style="color:var(--success)">84%</div>
+          <div class="kpi-change up">↑ 2pp — objetivo: 93%</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <div class="chart-card">
+          <div class="chart-title">Tareas completadas por día</div>
+          <div class="chart-placeholder">
+            <div class="chart-bar" style="height:45%"><span class="chart-bar-label">Lun</span></div>
+            <div class="chart-bar" style="height:72%"><span class="chart-bar-label">Mar</span></div>
+            <div class="chart-bar" style="height:58%"><span class="chart-bar-label">Mié</span></div>
+            <div class="chart-bar" style="height:85%"><span class="chart-bar-label">Jue</span></div>
+            <div class="chart-bar" style="height:64%"><span class="chart-bar-label">Vie</span></div>
+            <div class="chart-bar" style="height:20%;background:var(--overlay)"><span class="chart-bar-label">Sáb</span></div>
+            <div class="chart-bar" style="height:10%;background:var(--overlay)"><span class="chart-bar-label">Dom</span></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Focus Score y Burnout Score</div>
+          <div style="display:flex;gap:32px;align-items:center;padding-top:12px">
+            <div class="ring">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--overlay)" stroke-width="8"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--gold)" stroke-width="8" stroke-dasharray="326.73" stroke-dashoffset="91.48" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label"><div class="ring-value" style="color:var(--gold)">72</div><div class="ring-name">Focus</div></div>
+            </div>
+            <div class="ring">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--overlay)" stroke-width="8"/>
+                <circle cx="60" cy="60" r="52" fill="none" stroke="var(--success)" stroke-width="8" stroke-dasharray="326.73" stroke-dashoffset="215.64" stroke-linecap="round"/>
+              </svg>
+              <div class="ring-label"><div class="ring-value" style="color:var(--success)">34</div><div class="ring-name">Burnout</div></div>
+            </div>
+            <div class="score-detail">
+              <div><strong>Focus 72/100</strong> — 4.5h/día promedio de trabajo profundo. Jueves es tu día más productivo.</div>
+              <div style="margin-top:8px"><strong>Burnout 34/100</strong> — Carga manejable. Reclutamiento consume 2h/semana más de lo esperado.</div>
+              <div style="margin-top:8px;color:var(--warning)"><strong>Insight:</strong> Postergas tareas de Contenido en promedio 4.2 días. Considera bloques de escritura los martes AM.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Distribución por área — últimas 2 semanas</div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-top:16px">
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--blue)">28%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Ventas</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--gold)">18%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Alianzas</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:24px;font-weight:600">16%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Operaciones</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:24px;font-weight:600">14%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Reclutamiento</div></div>
+          <div style="text-align:center"><div style="font-family:var(--font-mono);font-size:24px;font-weight:600;color:var(--muted)">24%</div><div style="font-size:11px;color:var(--muted);margin-top:4px">Otros (6)</div></div>
+        </div>
+      </div>
+      <!-- Activity Feed -->
+      <div class="chart-card">
+        <div class="chart-title">Actividad reciente del sistema</div>
+        <div class="section-explainer" style="margin-top:0;margin-bottom:var(--space-sm)">Registro en tiempo real de acciones de Atlas: tareas creadas, sync, decisiones de IA y cambios de score.</div>
+        <div class="activity-feed">
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--success)"></div>
+            <div class="activity-text"><strong>Tarea auto-creada:</strong> "Enviar one-pager a fondos" — confianza 0.84, desde Granola</div>
+            <div class="activity-time">08:15</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--blue)"></div>
+            <div class="activity-text"><strong>Score actualizado:</strong> "Propuesta Femsa" subió de 88 → 94 (deadline proximity +6)</div>
+            <div class="activity-time">08:12</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--gold)"></div>
+            <div class="activity-text"><strong>Sync completada:</strong> 47 items procesados → 5 tareas nuevas, 2 duplicados descartados</div>
+            <div class="activity-time">08:12</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--warning)"></div>
+            <div class="activity-text"><strong>Follow-up detectado:</strong> Carlos Ruiz sin respuesta hace 2 días — sugerencia creada</div>
+            <div class="activity-time">08:12</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--danger)"></div>
+            <div class="activity-text"><strong>Burnout alert:</strong> Reclutamiento consume 2h/sem más de lo esperado. Recomendación: delegar screening inicial.</div>
+            <div class="activity-time">07:00</div>
+          </div>
+          <div class="activity-item">
+            <div class="activity-dot" style="background:var(--muted)"></div>
+            <div class="activity-text"><strong>Calendar Optimizer:</strong> Bloque de deep work propuesto 09:30–10:00 para propuesta Femsa</div>
+            <div class="activity-time">07:00</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ SETTINGS VIEW ═══ -->
+    <div class="view" id="view-settings" data-od-id="view-settings">
+      <h1 style="font-size:20px;font-weight:600;letter-spacing:-.01em;margin-bottom:24px">Settings</h1>
+
+      <div class="settings-section">
+        <h2>Conectores</h2>
+        <div class="connector-grid">
+          <div class="connector-card">
+            <div class="connector-icon outlook">✉</div>
+            <div class="connector-info">
+              <div class="connector-name">Outlook Mail</div>
+              <div class="connector-status"><span class="dot green"></span>Activo · última sync hace 12 min · 23 items</div>
+            </div>
+            <div class="connector-action"><button onclick="configureConnector(this)">Configurar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon outlook">📅</div>
+            <div class="connector-info">
+              <div class="connector-name">Outlook Calendar</div>
+              <div class="connector-status"><span class="dot green"></span>Activo · última sync hace 12 min · 6 eventos</div>
+            </div>
+            <div class="connector-action"><button onclick="configureConnector(this)">Configurar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon slack">⌗</div>
+            <div class="connector-info">
+              <div class="connector-name">Slack</div>
+              <div class="connector-status"><span class="dot green"></span>Activo · 4 canales monitoreados · 18 items</div>
+            </div>
+            <div class="connector-action"><button onclick="configureConnector(this)">Configurar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon granola">🌾</div>
+            <div class="connector-info">
+              <div class="connector-name">Granola (MCP)</div>
+              <div class="connector-status"><span class="dot green"></span>Activo · 3 reuniones procesadas hoy</div>
+            </div>
+            <div class="connector-action"><button onclick="configureConnector(this)">Configurar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon hubspot">⬡</div>
+            <div class="connector-info">
+              <div class="connector-name">HubSpot</div>
+              <div class="connector-status"><span class="dot amber"></span>Token expirando — re-autenticar antes del 12 jul</div>
+            </div>
+            <div class="connector-action"><button class="reconnect" onclick="reconnectConnector(this)">Re-autenticar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon github">⚙</div>
+            <div class="connector-info">
+              <div class="connector-name">GitHub</div>
+              <div class="connector-status"><span class="dot gray"></span>No conectado — disponible en V1</div>
+            </div>
+            <div class="connector-action"><button class="connect" onclick="connectConnector(this)">Conectar</button></div>
+          </div>
+          <div class="connector-card">
+            <div class="connector-icon gdrive">△</div>
+            <div class="connector-info">
+              <div class="connector-name">Google Drive</div>
+              <div class="connector-status"><span class="dot gray"></span>No conectado — disponible en V1</div>
+            </div>
+            <div class="connector-action"><button class="connect" onclick="connectConnector(this)">Conectar</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Historial de sincronización</h2>
+        <div class="sync-log">
+          <div class="sync-log-row header"><span>Timestamp</span><span>Conectores</span><span>Items</span><span>Tareas</span><span>Estado</span></div>
+          <div class="sync-log-row"><span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">08 jul 08:12</span><span>Outlook, Slack, Granola, HubSpot</span><span style="font-family:var(--font-mono)">47</span><span style="font-family:var(--font-mono)">5 nuevas</span><span class="sync-status-pill pill-ok">OK</span></div>
+          <div class="sync-log-row"><span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">08 jul 07:00</span><span>Outlook, Slack, Granola, HubSpot</span><span style="font-family:var(--font-mono)">31</span><span style="font-family:var(--font-mono)">3 nuevas</span><span class="sync-status-pill pill-ok">OK</span></div>
+          <div class="sync-log-row"><span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">07 jul 18:00</span><span>Outlook, Slack, HubSpot</span><span style="font-family:var(--font-mono)">22</span><span style="font-family:var(--font-mono)">2 nuevas</span><span class="sync-status-pill pill-warn">Granola timeout</span></div>
+          <div class="sync-log-row"><span style="font-family:var(--font-mono);font-size:11px;color:var(--muted)">07 jul 12:00</span><span>Outlook, Slack, Granola, HubSpot</span><span style="font-family:var(--font-mono)">56</span><span style="font-family:var(--font-mono)">7 nuevas</span><span class="sync-status-pill pill-ok">OK</span></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Pesos del Priority Engine</h2>
+        <div style="max-width:600px">
+          <div class="weight-row"><span class="weight-label">Deadline</span><div class="weight-bar"><div class="weight-bar-fill" style="width:100%"></div></div><span class="weight-value">25</span></div>
+          <div class="weight-row"><span class="weight-label">Impacto</span><div class="weight-bar"><div class="weight-bar-fill" style="width:80%"></div></div><span class="weight-value">20</span></div>
+          <div class="weight-row"><span class="weight-label">Requester</span><div class="weight-bar"><div class="weight-bar-fill" style="width:60%"></div></div><span class="weight-value">15</span></div>
+          <div class="weight-row"><span class="weight-label">Eisenhower</span><div class="weight-bar"><div class="weight-bar-fill" style="width:48%"></div></div><span class="weight-value">12</span></div>
+          <div class="weight-row"><span class="weight-label">Pareto (80/20)</span><div class="weight-bar"><div class="weight-bar-fill" style="width:40%"></div></div><span class="weight-value">10</span></div>
+          <div class="weight-row"><span class="weight-label">Eat The Frog</span><div class="weight-bar"><div class="weight-bar-fill" style="width:32%"></div></div><span class="weight-value">8</span></div>
+          <div class="weight-row"><span class="weight-label">Antigüedad</span><div class="weight-bar"><div class="weight-bar-fill" style="width:24%"></div></div><span class="weight-value">6</span></div>
+          <div class="weight-row"><span class="weight-label">Context bonus</span><div class="weight-bar"><div class="weight-bar-fill" style="width:16%"></div></div><span class="weight-value">4</span></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h2>Presupuesto de tokens — hoy</h2>
+        <div class="token-budget">
+          <div class="token-meter">
+            <div class="token-meter-label">Input: 312K / 500K</div>
+            <div class="token-meter-bar"><div class="token-meter-fill" style="width:62%;background:var(--blue)"></div></div>
+          </div>
+          <div class="token-meter">
+            <div class="token-meter-label">Output: 48K / 80K</div>
+            <div class="token-meter-bar"><div class="token-meter-fill" style="width:60%;background:var(--gold)"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- HELP PANEL -->
+<div class="help-panel" id="help-panel">
+  <div class="help-close" onclick="toggleHelp()">✕</div>
+  <h2>Atlas — Guía rápida</h2>
+  <p>Atlas es tu sistema operativo personal: extrae tareas automáticamente de 6+ canales, las prioriza con IA y te presenta solo lo que importa.</p>
+
+  <h3>¿Cómo funciona el Priority Score?</h3>
+  <p>Cada tarea recibe un score de 0 a 100 calculado por el <strong>Priority Engine</strong>, que combina 8 factores ponderados:</p>
+  <ul>
+    <li><strong>Deadline (25%)</strong> — Proximidad de la fecha límite. Tareas que vencen hoy = máximo puntaje.</li>
+    <li><strong>Impacto (20%)</strong> — Valor de negocio estimado por la IA según contexto.</li>
+    <li><strong>Requester (15%)</strong> — Quién pidió la tarea. CEO > compañero > bot automático.</li>
+    <li><strong>Eisenhower (12%)</strong> — Urgente + Importante gana. Solo urgente o solo importante puntúan menos.</li>
+    <li><strong>Pareto 80/20 (10%)</strong> — ¿Esta tarea está en el 20% que genera el 80% de resultados?</li>
+    <li><strong>Eat The Frog (8%)</strong> — Tareas difíciles o que postergas reciben un bonus matutino.</li>
+    <li><strong>Antigüedad (6%)</strong> — Cuántos días lleva abierta. Evita que nada se pierda en el backlog.</li>
+    <li><strong>Context bonus (4%)</strong> — Si la tarea está relacionada con tu reunión actual o bloque de foco.</li>
+  </ul>
+  <p>Pasa el mouse sobre cualquier score para ver el desglose completo.</p>
+
+  <h3>¿Qué son las Sugerencias?</h3>
+  <p>Atlas escanea tus canales conectados y extrae potenciales tareas usando IA. Las que tienen confianza entre <strong>0.6 y 0.8</strong> aparecen como sugerencias para tu revisión. Por encima de 0.8, se crean automáticamente.</p>
+
+  <h3>Pipeline de IA — 9 agentes</h3>
+  <ul>
+    <li><strong>Extractor</strong> — Lee correos, mensajes y notas. Identifica intenciones.</li>
+    <li><strong>Classifier</strong> — Categoriza por área (Ventas, Ops, Legal…).</li>
+    <li><strong>Deduplicator</strong> — Evita tareas duplicadas cruzando canales.</li>
+    <li><strong>Prioritizer</strong> — Calcula el score con los 8 factores.</li>
+    <li><strong>Follow-up Detector</strong> — Identifica hilos que esperan respuesta.</li>
+    <li><strong>Calendar Optimizer</strong> — Sugiere bloques de deep work.</li>
+    <li><strong>Deadline Estimator</strong> — Infiere fechas cuando no son explícitas.</li>
+    <li><strong>Relationship Mapper</strong> — Conecta tareas con proyectos y personas.</li>
+    <li><strong>Burnout Monitor</strong> — Detecta sobrecarga y sugiere redistribución.</li>
+  </ul>
+
+  <h3>Focus Score y Burnout Score</h3>
+  <p><strong>Focus Score (0–100)</strong> mide tus horas de trabajo profundo vs. interrupciones. Más de 4h/día de deep work = verde. <strong>Burnout Score (0–100)</strong> monitorea sobrecarga: considera horas extras, tareas postergadas y diversidad de áreas. Arriba de 60 = alerta.</p>
+
+  <h3>Atajos de teclado</h3>
+  <div class="help-kbd-grid">
+    <span class="kbd">⌘K</span><span>Paleta de comandos</span>
+    <span class="kbd">⌘⇧S</span><span>Sync manual</span>
+    <span class="kbd">1–5</span><span>Cambiar vista</span>
+    <span class="kbd">⌘N</span><span>Nueva tarea</span>
+    <span class="kbd">A</span><span>Aceptar sugerencia</span>
+    <span class="kbd">X</span><span>Rechazar sugerencia</span>
+    <span class="kbd">E</span><span>Editar y aceptar</span>
+    <span class="kbd">J/K</span><span>Navegar sugerencias</span>
+    <span class="kbd">F</span><span>Iniciar Focus Timer</span>
+    <span class="kbd">?</span><span>Abrir esta ayuda</span>
+    <span class="kbd">Esc</span><span>Cerrar panel / paleta</span>
+  </div>
+
+  <h3>Exportar informes</h3>
+  <p>Usa el botón <strong>↓</strong> en el topbar para descargar informes en Markdown, PDF o CSV. Los informes incluyen métricas de productividad, distribución por área y estado de tareas.</p>
+</div>
+
+<!-- NOTIFICATION CENTER -->
+<div class="notif-panel" id="notif-panel">
+  <div class="notif-header">
+    <h3>Notificaciones</h3>
+    <span style="font-size:11px;color:var(--muted);cursor:pointer" onclick="document.querySelectorAll('.notif-item.unread').forEach(n=>n.classList.remove('unread'));toast('Todas leídas','✓')">Marcar todas como leídas</span>
+  </div>
+  <div class="notif-list">
+    <div class="notif-item unread">
+      <div class="notif-icon" style="background:var(--danger-soft);color:var(--danger)">!</div>
+      <div class="notif-body">
+        <strong>Deadline hoy: Propuesta Femsa</strong>
+        <p>La propuesta comercial para Femsa vence hoy a las 18:00. Score: 94.</p>
+        <div class="notif-time">Hace 12 min</div>
+      </div>
+    </div>
+    <div class="notif-item unread">
+      <div class="notif-icon" style="background:var(--warning-soft);color:var(--warning)">⟳</div>
+      <div class="notif-body">
+        <strong>HubSpot token expirando</strong>
+        <p>El token de HubSpot expira el 12 de julio. Re-autenticar para evitar pérdida de sync.</p>
+        <div class="notif-time">Hace 1h</div>
+      </div>
+    </div>
+    <div class="notif-item unread">
+      <div class="notif-icon" style="background:var(--success-soft);color:var(--success)">✓</div>
+      <div class="notif-body">
+        <strong>7 sugerencias nuevas</strong>
+        <p>El último sync extrajo 7 tareas pendientes de revisión desde Outlook, Slack y Granola.</p>
+        <div class="notif-time">Hace 2h</div>
+      </div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-icon" style="background:var(--blue-soft);color:var(--blue)">📊</div>
+      <div class="notif-body">
+        <strong>Insight semanal listo</strong>
+        <p>Tu Focus Score subió a 72 (+3). El área de Reclutamiento consume más tiempo del esperado.</p>
+        <div class="notif-time">Hace 6h</div>
+      </div>
+    </div>
+    <div class="notif-item">
+      <div class="notif-icon" style="background:var(--gold-soft);color:var(--gold)">⏳</div>
+      <div class="notif-body">
+        <strong>3 respuestas pendientes</strong>
+        <p>Carlos Ruiz (2 días), Ana Martínez (1 día), Legal Oracle (3 días) sin responder.</p>
+        <div class="notif-time">Hace 8h</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK-ADD TASK MODAL -->
+<div class="quick-add-overlay" id="quick-add" onclick="if(event.target===this)closeQuickAdd()">
+  <div class="quick-add">
+    <h3>Nueva tarea</h3>
+    <div class="quick-add-field">
+      <label>Título</label>
+      <input type="text" id="qa-title" placeholder="¿Qué necesitas hacer?" autofocus/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+      <div class="quick-add-field">
+        <label>Área</label>
+        <select id="qa-area">
+          <option>Ventas</option><option>Alianzas</option><option>Operaciones</option>
+          <option>Reclutamiento</option><option>Marketing</option><option>Contenido</option>
+          <option>Administración</option><option>Personal</option><option>Networking</option>
+        </select>
+      </div>
+      <div class="quick-add-field">
+        <label>Fecha límite</label>
+        <input type="date" id="qa-due"/>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-md)">
+      <div class="quick-add-field">
+        <label>Cliente (opcional)</label>
+        <input type="text" id="qa-client" placeholder="Ej: Femsa, Oracle"/>
+      </div>
+      <div class="quick-add-field">
+        <label>Prioridad manual</label>
+        <select id="qa-priority">
+          <option>Auto (Priority Engine)</option><option>Alta</option><option>Media</option><option>Baja</option>
+        </select>
+      </div>
+    </div>
+    <div class="quick-add-field">
+      <label>Notas</label>
+      <textarea id="qa-notes" placeholder="Contexto adicional, enlaces, referencias..."></textarea>
+    </div>
+    <div class="quick-add-actions">
+      <button class="btn-cancel" onclick="closeQuickAdd()">Cancelar</button>
+      <button class="btn-primary" onclick="createTask()">Crear tarea</button>
+    </div>
+  </div>
+</div>
+
+<!-- FOCUS TIMER -->
+<div class="focus-timer" id="focus-timer">
+  <div>
+    <div class="focus-timer-label">Deep Work</div>
+    <div class="focus-timer-time" id="timer-display">25:00</div>
+  </div>
+  <div>
+    <div class="focus-timer-task" id="timer-task">Propuesta Femsa</div>
+    <div class="focus-timer-label" id="timer-status">Pausado</div>
+  </div>
+  <div class="focus-timer-controls">
+    <button onclick="toggleTimer()" id="timer-play-btn" title="Play/Pausa">▶</button>
+    <button onclick="stopTimer()" title="Detener">■</button>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-overlay" id="cmd-overlay" onclick="if(event.target===this)closeCmd()" role="dialog" aria-modal="true" aria-label="Paleta de comandos">
+  <div class="cmd-box" data-od-id="command-palette">
+    <div class="cmd-input-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input class="cmd-input" id="cmd-input" type="text" placeholder="Buscar, crear tarea, o navegar…" autocomplete="off" aria-label="Buscar" role="combobox" aria-expanded="true" aria-controls="cmd-results"/>
+    </div>
+    <div class="cmd-results" id="cmd-results">
+      <div class="cmd-group-label">Acciones rápidas</div>
+      <div class="cmd-item selected" onclick="closeCmd();toast('Nueva tarea creada (modo demo)','✓')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 5v14M5 12h14"/></svg>
+        Crear nueva tarea
+        <span class="cmd-shortcut"><span class="kbd">⌘</span><span class="kbd">N</span></span>
+      </div>
+      <div class="cmd-item" onclick="triggerSync();closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Sync manual
+        <span class="cmd-shortcut"><span class="kbd">⌘</span><span class="kbd">⇧</span><span class="kbd">S</span></span>
+      </div>
+      <div class="cmd-group-label">Navegar</div>
+      <div class="cmd-item" onclick="switchView('today');closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Ir a Hoy
+        <span class="cmd-shortcut"><span class="kbd">G</span><span class="kbd">H</span></span>
+      </div>
+      <div class="cmd-item" onclick="switchView('inbox');closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h16v16H4z"/><path d="M4 13h5l2 2h2l2-2h5"/></svg>
+        Ir a Sugerencias
+      </div>
+      <div class="cmd-item" onclick="switchView('projects');closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4m0 0l9-4m-9 4v10"/></svg>
+        Ir a Proyectos
+      </div>
+      <div class="cmd-item" onclick="switchView('analytics');closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 16v4M10 12v8M14 8v12M18 4v16"/></svg>
+        Ir a Analytics
+        <span class="cmd-shortcut"><span class="kbd">G</span><span class="kbd">A</span></span>
+      </div>
+      <div class="cmd-group-label">Tareas recientes</div>
+      <div class="cmd-item" onclick="closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>
+        Enviar propuesta comercial a Femsa
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-left:auto">94</span>
+      </div>
+      <div class="cmd-item" onclick="closeCmd()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/></svg>
+        Revisar contrato Oracle
+        <span style="font-family:var(--font-mono);font-size:10px;color:var(--gold);margin-left:auto">87</span>
+      </div>
+    </div>
+    <div class="cmd-footer">
+      <span><span class="kbd">↑↓</span> navegar</span>
+      <span><span class="kbd">↵</span> seleccionar</span>
+      <span><span class="kbd">esc</span> cerrar</span>
+      <span style="margin-left:auto;opacity:.5">Atlas v0.1 · MVP</span>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── TOAST ───
+function toast(msg,icon='✓'){
+  document.querySelectorAll('.toast').forEach(t=>t.remove());
+  const el=document.createElement('div');
+  el.className='toast';
+  el.innerHTML=`<span class="toast-icon">${icon}</span>${msg}`;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+
+// ─── VIEW SWITCHING ───
+function switchView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+id).classList.add('active','fade-in');
+  document.querySelectorAll('.sidebar-item[data-view]').forEach(s=>{
+    s.classList.toggle('active',s.dataset.view===id);
+  });
+  const titles={today:'Hoy',inbox:'Sugerencias',projects:'Proyectos y Clientes',analytics:'Analytics',settings:'Settings'};
+  document.getElementById('topbar-title').textContent=titles[id]||id;
+  document.getElementById('focus-badge').style.display=id==='today'?'':'none';
+  // ponytail: close mobile sidebar + overlay on nav
+  document.querySelector('.sidebar').classList.remove('open');
+  document.querySelector('.sidebar-overlay').classList.remove('open');
+}
+
+// ─── COMMAND PALETTE ───
+function openCmd(){
+  const ov=document.getElementById('cmd-overlay');
+  ov.classList.add('open');
+  const inp=document.getElementById('cmd-input');
+  inp.value='';
+  inp.focus();
+  filterCmd('');
+}
+function closeCmd(){
+  document.getElementById('cmd-overlay').classList.remove('open');
+}
+// ponytail: live search filtering
+function filterCmd(q){
+  const items=document.querySelectorAll('#cmd-results .cmd-item');
+  const labels=document.querySelectorAll('#cmd-results .cmd-group-label');
+  q=q.toLowerCase().trim();
+  items.forEach(it=>{
+    const match=!q||it.textContent.toLowerCase().includes(q);
+    it.style.display=match?'flex':'none';
+  });
+  // hide group labels if all their items are hidden
+  labels.forEach(lb=>{
+    let next=lb.nextElementSibling;
+    let anyVisible=false;
+    while(next&&!next.classList.contains('cmd-group-label')){
+      if(next.style.display!=='none') anyVisible=true;
+      next=next.nextElementSibling;
+    }
+    lb.style.display=anyVisible?'':'none';
+  });
+  // auto-select first visible
+  const sel=document.querySelector('#cmd-results .cmd-item.selected');
+  if(sel) sel.classList.remove('selected');
+  const first=document.querySelector('#cmd-results .cmd-item[style*="flex"]')||document.querySelector('#cmd-results .cmd-item:not([style*="none"])');
+  if(first) first.classList.add('selected');
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const inp=document.getElementById('cmd-input');
+  inp.addEventListener('input',()=>filterCmd(inp.value));
+});
+
+// ─── TASK INTERACTIONS ───
+function completeTask(row){
+  const cb=row.querySelector('.task-checkbox');
+  if(cb.classList.contains('checked')){
+    cb.classList.remove('checked');
+    row.classList.remove('completed','completing');
+  }else{
+    cb.classList.add('checked');
+    row.classList.add('completing');
+    setTimeout(()=>row.classList.add('completed'),250);
+    toast('Tarea completada');
+  }
+}
+function toggleTask(row){
+  // ponytail: expand/collapse evidence panel inline
+  const wasExpanded=row.classList.contains('expanded');
+  document.querySelectorAll('.task-row.expanded').forEach(r=>r.classList.remove('expanded'));
+  if(!wasExpanded) row.classList.add('expanded');
+}
+
+// ─── COLLAPSED TASKS ───
+function toggleCollapsed(el){
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+
+// ─── SUGGESTION TRIAGE ───
+function updateInboxCount(){
+  const remaining=document.querySelectorAll('#suggestions-list .suggestion-row').length;
+  const countEl=document.querySelector('.inbox-count');
+  if(countEl) countEl.textContent=remaining+' pendientes de revisión · confianza 0.6–0.8';
+  // update sidebar badge
+  const badge=document.querySelector('.sidebar-item[data-view="inbox"] .badge');
+  if(badge){badge.textContent=remaining;if(!remaining)badge.style.display='none';}
+}
+function moveFocusToNext(){
+  const rows=document.querySelectorAll('#suggestions-list .suggestion-row');
+  if(rows.length) rows[0].classList.add('focused');
+}
+function acceptSuggestion(btn){
+  const row=btn.closest('.suggestion-row');
+  row.style.borderColor='var(--success)';
+  row.style.background='var(--success-soft)';
+  row.classList.remove('focused');
+  setTimeout(()=>{
+    row.style.opacity='0';row.style.transform='translateX(20px)';
+    setTimeout(()=>{row.remove();updateInboxCount();moveFocusToNext();},200);
+  },300);
+  toast('Sugerencia aceptada — tarea creada','✓');
+}
+function rejectSuggestion(btn){
+  const row=btn.closest('.suggestion-row');
+  row.style.borderColor='var(--danger)';
+  row.style.background='var(--danger-soft)';
+  row.classList.remove('focused');
+  setTimeout(()=>{
+    row.style.opacity='0';row.style.transform='translateX(-20px)';
+    setTimeout(()=>{row.remove();updateInboxCount();moveFocusToNext();},200);
+  },300);
+  toast('Sugerencia descartada','✕');
+}
+function editSuggestion(btn){
+  // ponytail: same as accept but signals edit mode
+  const row=btn.closest('.suggestion-row');
+  row.style.borderColor='var(--blue)';
+  row.style.background='var(--blue-soft)';
+  row.classList.remove('focused');
+  setTimeout(()=>{
+    row.style.opacity='0';row.style.transform='translateX(20px)';
+    setTimeout(()=>{row.remove();updateInboxCount();moveFocusToNext();},200);
+  },300);
+  toast('Editando sugerencia — tarea creada en modo edición','✏');
+}
+
+// ─── SYNC ANIMATION ───
+function triggerSync(){
+  const icon=document.getElementById('sync-icon');
+  if(icon.style.animation) return; // debounce
+  icon.style.animation='spin .8s ease';
+  toast('Sincronizando canales…','↻');
+  setTimeout(()=>{
+    icon.style.animation='';
+    // update sidebar sync label
+    const syncLabel=document.querySelector('.sidebar-sync');
+    if(syncLabel) syncLabel.innerHTML='<span class="dot"></span>Última sync hace 1 min';
+    toast('Sync completada — 2 items nuevos','✓');
+  },800);
+}
+
+// ─── CONNECTOR ACTIONS ───
+function configureConnector(btn){
+  const name=btn.closest('.connector-card').querySelector('.connector-name').textContent;
+  toast('Abriendo configuración de '+name,'⚙');
+}
+function connectConnector(btn){
+  const card=btn.closest('.connector-card');
+  const name=card.querySelector('.connector-name').textContent;
+  // simulate connecting
+  btn.textContent='Conectando…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='Configurar';
+    btn.className='';
+    btn.disabled=false;
+    const dot=card.querySelector('.dot');
+    if(dot){dot.className='dot green';}
+    const status=card.querySelector('.connector-status');
+    if(status) status.innerHTML='<span class="dot green"></span>Activo · recién conectado';
+    toast(name+' conectado exitosamente','✓');
+  },1500);
+}
+function reconnectConnector(btn){
+  const card=btn.closest('.connector-card');
+  const name=card.querySelector('.connector-name').textContent;
+  btn.textContent='Autenticando…';
+  btn.disabled=true;
+  setTimeout(()=>{
+    btn.textContent='Configurar';
+    btn.className='';
+    btn.disabled=false;
+    const dot=card.querySelector('.dot');
+    if(dot){dot.className='dot green';}
+    const status=card.querySelector('.connector-status');
+    if(status) status.innerHTML='<span class="dot green"></span>Activo · re-autenticado';
+    toast(name+' re-autenticado','✓');
+  },1200);
+}
+
+// ─── TOGGLE BUTTON GROUPS ───
+function setToggle(btn){
+  btn.parentElement.querySelectorAll('.topbar-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── KEYBOARD SHORTCUTS ───
+document.addEventListener('keydown',e=>{
+  const cmdOpen=document.getElementById('cmd-overlay').classList.contains('open');
+  // Cmd/Ctrl+K → command palette
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmd();return;}
+  // Escape → close palette or collapse task
+  if(e.key==='Escape'){
+    if(cmdOpen){closeCmd();return;}
+    document.querySelectorAll('.task-row.expanded').forEach(r=>r.classList.remove('expanded'));
+    return;
+  }
+  // Cmd+Shift+S → sync
+  if((e.metaKey||e.ctrlKey)&&e.shiftKey&&e.key==='S'){e.preventDefault();triggerSync();return;}
+  // Enter on focused sidebar item
+  if(e.key==='Enter'&&document.activeElement.classList.contains('sidebar-item')){document.activeElement.click();return;}
+  // Enter in cmd palette → execute selected
+  if(cmdOpen&&e.key==='Enter'){
+    const sel=document.querySelector('#cmd-results .cmd-item.selected');
+    if(sel){sel.click();return;}
+  }
+  // Arrow up/down in cmd palette
+  if(cmdOpen&&(e.key==='ArrowDown'||e.key==='ArrowUp')){
+    e.preventDefault();
+    const visible=[...document.querySelectorAll('#cmd-results .cmd-item')].filter(i=>i.style.display!=='none');
+    if(!visible.length) return;
+    const idx=visible.findIndex(i=>i.classList.contains('selected'));
+    visible.forEach(i=>i.classList.remove('selected'));
+    let next=e.key==='ArrowDown'?(idx+1)%visible.length:(idx-1+visible.length)%visible.length;
+    visible[next].classList.add('selected');
+    return;
+  }
+  if(cmdOpen) return; // don't process shortcuts while palette is open
+  // 1-5 navigation
+  if(!e.metaKey&&!e.ctrlKey&&!e.shiftKey){
+    const views=['today','inbox','projects','analytics','settings'];
+    const n=parseInt(e.key);
+    if(n>=1&&n<=5){switchView(views[n-1]);return;}
+  }
+  // Inbox triage shortcuts (A/X/E/J/K)
+  const inboxActive=document.getElementById('view-inbox').classList.contains('active');
+  if(inboxActive){
+    const focused=document.querySelector('.suggestion-row.focused');
+    if(e.key==='j'||e.key==='J'){
+      e.preventDefault();
+      const rows=[...document.querySelectorAll('#suggestions-list .suggestion-row')];
+      const idx=rows.indexOf(focused);
+      if(focused) focused.classList.remove('focused');
+      const next=rows[Math.min(idx+1,rows.length-1)];
+      if(next) next.classList.add('focused');
+      return;
+    }
+    if(e.key==='k'||e.key==='K'){
+      e.preventDefault();
+      const rows=[...document.querySelectorAll('#suggestions-list .suggestion-row')];
+      const idx=rows.indexOf(focused);
+      if(focused) focused.classList.remove('focused');
+      const prev=rows[Math.max(idx-1,0)];
+      if(prev) prev.classList.add('focused');
+      return;
+    }
+    if(focused){
+      if(e.key==='a'||e.key==='A'){e.preventDefault();acceptSuggestion(focused.querySelector('.sug-accept'));return;}
+      if(e.key==='x'||e.key==='X'){e.preventDefault();rejectSuggestion(focused.querySelector('.sug-reject'));return;}
+      if(e.key==='e'||e.key==='E'){e.preventDefault();editSuggestion(focused.querySelector('.sug-edit'));return;}
+    }
+  }
+});
+
+// ─── THEME TOGGLE ───
+function toggleTheme(){
+  const html=document.documentElement;
+  const next=html.dataset.theme==='light'?'dark':'light';
+  html.dataset.theme=next;
+  localStorage.setItem('atlas-theme',next);
+  updateThemeIcon(next);
+  toast('Tema: '+(next==='light'?'claro':'oscuro'),next==='light'?'☀':'☾');
+}
+function updateThemeIcon(t){
+  document.getElementById('theme-icon').innerHTML=t==='light'
+    ?'<circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>'
+    :'<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+}
+// ponytail: init theme from localStorage, default dark
+(function(){const t=localStorage.getItem('atlas-theme')||'dark';document.documentElement.dataset.theme=t;updateThemeIcon(t);})();
+
+// ─── HELP PANEL ───
+function toggleHelp(){
+  document.getElementById('help-panel').classList.toggle('open');
+}
+
+// ─── NOTIFICATIONS ───
+function toggleNotifs(){
+  document.getElementById('notif-panel').classList.toggle('open');
+  document.getElementById('export-menu').classList.remove('open');
+}
+
+// ─── EXPORT ───
+function toggleExport(){
+  document.getElementById('export-menu').classList.toggle('open');
+  document.getElementById('notif-panel').classList.remove('open');
+}
+
+function exportReport(format){
+  document.getElementById('export-menu').classList.remove('open');
+  const now=new Date().toLocaleDateString('es-MX',{year:'numeric',month:'long',day:'numeric'});
+  const tasks=[];
+  document.querySelectorAll('#top5-list .task-row').forEach(r=>{
+    const title=r.querySelector('.task-title')?.textContent||'';
+    const score=r.querySelector('.task-score')?.textContent||'';
+    const chips=[...r.querySelectorAll('.task-chip')].map(c=>c.textContent).join(' · ');
+    tasks.push({title,score,chips});
+  });
+
+  if(format==='md'){
+    let md=`# Atlas — Informe diario\n\n**Fecha:** ${now}\n**Focus Score:** 72/100\n**Burnout Score:** 34/100\n\n---\n\n## Top 5 del día\n\n| # | Tarea | Score | Área |\n|---|-------|-------|------|\n`;
+    tasks.forEach((t,i)=>{md+=`| ${i+1} | ${t.title} | ${t.score} | ${t.chips} |\n`;});
+    md+=`\n## Métricas de la semana\n\n- **Tareas completadas:** 34 (+12% vs semana anterior)\n- **Detección automática:** 78%\n- **Horas deep work:** 22.5h\n- **Precisión de extracción:** 84%\n\n## Distribución por área\n\n- Ventas: 28%\n- Alianzas: 18%\n- Operaciones: 16%\n- Reclutamiento: 14%\n- Otros: 24%\n\n## Insights\n\n- Jueves es tu día más productivo\n- Postergas tareas de Contenido en promedio 4.2 días\n- Reclutamiento consume 2h/semana más de lo esperado\n\n---\n\n*Generado por Atlas · ${now}*\n`;
+    downloadFile('atlas-informe-'+new Date().toISOString().slice(0,10)+'.md',md,'text/markdown');
+    toast('Informe Markdown descargado','↓');
+  }
+  else if(format==='pdf'){
+    // ponytail: use window.print() with print styles — good enough, avoids jspdf dependency
+    toast('Preparando PDF — usa ⌘P para guardar como PDF','📄');
+    setTimeout(()=>window.print(),300);
+  }
+  else if(format==='csv'){
+    let csv='Título,Score,Área,Estado\n';
+    document.querySelectorAll('.task-row').forEach(r=>{
+      const title=(r.querySelector('.task-title')?.textContent||'').replace(/,/g,';');
+      const score=r.querySelector('.task-score')?.textContent||'';
+      const area=r.querySelector('.task-chip.area')?.textContent||'';
+      const done=r.classList.contains('completed')?'Completada':'Pendiente';
+      csv+=`"${title}",${score},${area},${done}\n`;
+    });
+    downloadFile('atlas-tareas-'+new Date().toISOString().slice(0,10)+'.csv',csv,'text/csv');
+    toast('CSV de tareas descargado','↓');
+  }
+}
+
+function downloadFile(name,content,mime){
+  const blob=new Blob([content],{type:mime+';charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=name;
+  document.body.appendChild(a);a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+}
+
+// ─── QUICK-ADD TASK ───
+function openQuickAdd(){
+  document.getElementById('quick-add').classList.add('open');
+  setTimeout(()=>document.getElementById('qa-title').focus(),100);
+}
+function closeQuickAdd(){
+  document.getElementById('quick-add').classList.remove('open');
+}
+function createTask(){
+  const title=document.getElementById('qa-title').value.trim();
+  if(!title){document.getElementById('qa-title').style.borderColor='var(--danger)';return;}
+  const area=document.getElementById('qa-area').value;
+  // ponytail: inject into top of task list as a real DOM node
+  const list=document.querySelector('#top5-list')||document.querySelector('.task-list');
+  if(list){
+    const row=document.createElement('div');
+    row.className='task-row fade-in';
+    row.setAttribute('onclick','toggleTask(this)');
+    row.innerHTML=`<div class="task-checkbox" onclick="event.stopPropagation();completeTask(this.parentElement)"></div>
+      <div class="task-content"><div class="task-title">${title}</div><div class="task-meta-row"><span class="task-chip area">${area}</span><span class="task-chip" style="color:var(--success)">Nueva</span></div></div>
+      <div class="task-right"><span class="task-score" style="color:var(--muted)">—</span></div>`;
+    list.prepend(row);
+  }
+  closeQuickAdd();
+  toast('Tarea creada: '+title,'✓');
+  // reset form
+  document.getElementById('qa-title').value='';
+  document.getElementById('qa-notes').value='';
+  document.getElementById('qa-client').value='';
+}
+
+// ─── FOCUS TIMER ───
+let timerInterval=null;
+let timerSeconds=25*60;
+let timerRunning=false;
+
+function startFocusTimer(taskName){
+  document.getElementById('focus-timer').classList.add('active');
+  document.getElementById('timer-task').textContent=taskName||'Deep Work';
+  timerSeconds=25*60;
+  timerRunning=false;
+  updateTimerDisplay();
+  document.getElementById('timer-status').textContent='Pausado';
+  document.getElementById('timer-play-btn').textContent='▶';
+}
+function toggleTimer(){
+  if(timerRunning){
+    clearInterval(timerInterval);
+    timerRunning=false;
+    document.getElementById('timer-status').textContent='Pausado';
+    document.getElementById('timer-play-btn').textContent='▶';
+  }else{
+    timerRunning=true;
+    document.getElementById('timer-status').textContent='En curso';
+    document.getElementById('timer-play-btn').textContent='❚❚';
+    timerInterval=setInterval(()=>{
+      timerSeconds--;
+      if(timerSeconds<=0){
+        clearInterval(timerInterval);
+        timerRunning=false;
+        document.getElementById('timer-status').textContent='¡Completado!';
+        document.getElementById('timer-play-btn').textContent='▶';
+        toast('Focus session completada — 25 min de deep work','🎯');
+      }
+      updateTimerDisplay();
+    },1000);
+  }
+}
+function stopTimer(){
+  clearInterval(timerInterval);
+  timerRunning=false;
+  document.getElementById('focus-timer').classList.remove('active');
+}
+function updateTimerDisplay(){
+  const m=Math.floor(timerSeconds/60);
+  const s=timerSeconds%60;
+  document.getElementById('timer-display').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// ─── CLOSE PANELS ON OUTSIDE CLICK ───
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.notif-panel')&&!e.target.closest('[onclick*="toggleNotifs"]')){
+    document.getElementById('notif-panel').classList.remove('open');
+  }
+  if(!e.target.closest('.export-menu')&&!e.target.closest('[onclick*="toggleExport"]')){
+    document.getElementById('export-menu').classList.remove('open');
+  }
+});
+
+// ─── EXTENDED KEYBOARD SHORTCUTS ───
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+  const cmdOpen=document.getElementById('cmd-overlay').classList.contains('open');
+  if(cmdOpen) return;
+  // ? = help
+  if(e.key==='?'&&!e.metaKey&&!e.ctrlKey){e.preventDefault();toggleHelp();}
+  // F = focus timer
+  if((e.key==='f'||e.key==='F')&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey){
+    const inboxActive=document.getElementById('view-inbox').classList.contains('active');
+    if(!inboxActive){e.preventDefault();startFocusTimer('Propuesta Femsa');}
+  }
+  // Cmd+N or Ctrl+N = quick add
+  if((e.metaKey||e.ctrlKey)&&e.key==='n'){e.preventDefault();openQuickAdd();}
+  // Escape closes help and quick-add too
+  if(e.key==='Escape'){
+    document.getElementById('help-panel').classList.remove('open');
+    document.getElementById('notif-panel').classList.remove('open');
+    closeQuickAdd();
+  }
+});
+</script>
+</body>
+</html>

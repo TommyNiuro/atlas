@@ -1,0 +1,48 @@
+version: "3"
+
+tasks:
+  dev:
+    desc: Levanta el stack completo (postgres+redis en Docker, api y web nativos)
+    deps: [dev:db, dev:api, dev:web]
+
+  dev:db:
+    cmds:
+      - docker compose -f infra/docker-compose.yml up -d
+
+  dev:api:
+    dir: apps/api
+    cmds:
+      - uv run uvicorn atlas.main:app --reload --port 8000
+
+  dev:web:
+    dir: apps/web
+    cmds:
+      - pnpm dev
+
+  setup:
+    desc: Instalacion inicial multiplataforma
+    cmds:
+      - python3 scripts/setup.py
+
+  test:
+    desc: Tests de api y web
+    cmds:
+      - cd apps/api && uv run pytest
+      - cd apps/web && pnpm build
+
+  lint:
+    cmds:
+      - cd apps/api && uv run ruff check .
+
+  migrate:
+    # ponytail: Alembic llega con el Bloque 1; el comando ya existe para no cambiar el flujo
+    cmds:
+      - echo "Sin migraciones todavia (Bloque 1 pendiente)"
+
+  logs:
+    cmds:
+      - docker compose -f infra/docker-compose.yml logs -f
+
+  stop:
+    cmds:
+      - docker compose -f infra/docker-compose.yml down

@@ -1,0 +1,3 @@
+# Canales de Slack que Atlas lee, ademas de DMs y menciones.
+# Empieza corto: 3 o 4 canales donde de verdad te asignan trabajo.
+channels: []
