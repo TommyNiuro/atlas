@@ -134,10 +134,17 @@ class SlackConnector:
         async with httpx.AsyncClient(timeout=60) as client:
             yo = (await _slack_call(client, "auth.test", token, {})).get("user_id")
             for cid, cname in await self._conversaciones(client, token):
-                msgs = await _paginate(
-                    client, "conversations.history", token,
-                    {"channel": cid, "oldest": oldest}, "messages",
-                )
+                try:
+                    msgs = await _paginate(
+                        client, "conversations.history", token,
+                        {"channel": cid, "oldest": oldest}, "messages",
+                    )
+                except RuntimeError as e:
+                    # DMs de Slack Connect / externos o archivados devuelven channel_not_found
+                    # o not_in_channel en history: se salta esa conversacion, no aborta el sync.
+                    if any(x in str(e) for x in ("channel_not_found", "not_in_channel", "is_archived")):
+                        continue
+                    raise
                 for m in msgs:
                     ts = m["ts"]
                     max_ts = max(max_ts, float(ts))  # avanza el cursor aun sobre ruido: no re-pull
