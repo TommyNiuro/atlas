@@ -10,7 +10,7 @@ Estás trabajando en **Atlas**, un "Personal Operating System" local-first y ope
 
 - **Repo:** `/Users/enderys/atlas` · **GitHub:** https://github.com/TommyNiuro/atlas (público, cuenta TommyNiuro) · licencia MIT.
 - **Specs (leer antes de tocar):** `docs/Requerimiento_Tecnico_v1.md` (arquitectura completa, 9 agentes, 7 conectores), `docs/Plan_de_Construccion.md` (8 bloques 0-7), `docs/Recomendaciones_Prototipo.md`, y `docs/AUDITORIA-2026-07-09.md` (auditoría + qué se resolvió/deferió).
-- **Estado:** MVP completo (bloques 0 a 4) + auditoría corregida al 100% dentro del alcance "app perfecta" + app nativa Tauri instalada y verificada funcionando (tareas de demo se ven con score/rank). 20 tests en verde. Release v0.6.0 + un fix posterior (snooze). Sin trabajo a medias.
+- **Estado:** MVP completo (bloques 0 a 4) + auditoría corregida al 100% dentro del alcance "app perfecta" + app nativa Tauri instalada y verificada funcionando (tareas de demo se ven con score/rank). **Bloque 5 arrancado: conector Slack listo** (DMs/group DMs + canales de `config/channels.yaml`, incremental por ts, filtro de ruido; `commit 8019e8e`). 22 tests en verde. Release v0.6.0 + fix de snooze. Sin trabajo a medias.
 - **Última corrección (importante):** el fix de snooze del audit tenía un bug: usaba `due_date` para ocultar tareas de Hoy, así que cualquier tarea con fecha futura desaparecía. Se separó en columna `snoozed_until` (migración `4bb1e5778e0b`): `due_date` es informativo (afecta score, nunca oculta); solo `snoozed_until` oculta de Hoy. Ya arreglado y desplegado.
 
 ## Cómo está desplegado (en la Mac de Tomás)
@@ -25,7 +25,7 @@ Estás trabajando en **Atlas**, un "Personal Operating System" local-first y ope
 
 Monorepo. `apps/web` (Next.js 15, un `page.tsx` con las vistas Hoy/Sugerencias/Settings + command palette). `apps/api` (FastAPI, Python 3.12/uv):
 - `connectors/` (base.py = interfaz Connector + registry; outlook.py, outlook_calendar.py, sync.py). `agents/` (runtime.py, orchestrator.py = pipeline en código puro, schemas.py, prompts/*.md). `scoring/engine.py` (fórmula determinista, pesos en `config/scoring.yaml`). `routers/` (tasks.py, settings.py). `db/` (models.py = 11 entidades, seed.py). `ws.py` (LISTEN/NOTIFY → WebSocket).
-- Comandos: `task dev|migrate|seed|sync|pipeline|auth-outlook|auth-calendar`. Tests: `cd apps/api && uv run pytest`. Lint: `uv run ruff check`.
+- Comandos: `task dev|migrate|seed|sync|pipeline|auth-outlook|auth-calendar|auth-slack|sync-slack`. Tests: `cd apps/api && uv run pytest`. Lint: `uv run ruff check`.
 
 ## Convenciones (importante)
 
@@ -44,7 +44,7 @@ Monorepo. `apps/web` (Next.js 15, un `page.tsx` con las vistas Hoy/Sugerencias/S
 ## Lo que falta (bloques 5-7 del plan) — ordena por lo que Tomás priorice
 
 **Bloque 5 · Las demás fuentes** (cada una implementa la interfaz `Connector` de `connectors/base.py`, se registra con `@register`, y trae tests con respuestas grabadas tipo respx):
-- **Slack** (user token, scopes de history/search; leer DMs, menciones y canales de `config/channels.yaml`).
+- ~~**Slack**~~ **HECHO** (`connectors/slack.py`): user token en `SLACK_TOKEN`, lee DMs/group DMs siempre + canales nombrados en `config/channels.yaml`, incremental por `ts`. Falta que Tomás pegue el token (scopes `im/mpim/channels/groups` read+history) y corra `task auth-slack`. Limitaciones anotadas: no baja respuestas dentro de threads ni menciones fuera de los canales configurados (v1).
 - **Granola** vía su MCP oficial (SDK `mcp` de Python, streamable HTTP, `list_meetings` desde `last_sync_at`; acuerdos donde el responsable es Tomás → tareas, de otros → seguimientos).
 - **HubSpot** (private app token, deals con actividad reciente; + regla en SQL: deal en negociación sin actividad en 5 días → follow-up, sin gastar tokens).
 - Verificar cada uno de punta a punta antes del siguiente. GitHub y Drive quedan para el final (menor volumen).
@@ -67,4 +67,4 @@ Rate limiter dedicado por conector (aiolimiter), contador de 2 fallos consecutiv
 
 ## Primer paso sugerido
 
-Preguntar a Tomás cuál de los conectores del bloque 5 quiere primero (Slack suele ser el de mayor señal), o si prefiere el planificador diario del bloque 6. Luego implementarlo end-to-end sobre la interfaz existente, con su test, y verificarlo antes de seguir.
+Slack ya está. Preguntar a Tomás el siguiente del bloque 5: **Granola** (transcripciones, alta señal de acuerdos) o **HubSpot** (deals + regla SQL de inactividad), o si prefiere saltar al planificador diario del bloque 6. Luego implementarlo end-to-end sobre la interfaz existente, con su test, y verificarlo antes de seguir.
