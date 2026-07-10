@@ -45,7 +45,7 @@ Monorepo. `apps/web` (Next.js 15, un `page.tsx` con las vistas Hoy/Sugerencias/S
 
 **Bloque 5 · Las demás fuentes** (cada una implementa la interfaz `Connector` de `connectors/base.py`, se registra con `@register`, y trae tests con respuestas grabadas tipo respx):
 - ~~**Slack**~~ **HECHO** (`connectors/slack.py`): user token en `SLACK_TOKEN`, lee DMs/group DMs siempre + canales nombrados en `config/channels.yaml`, incremental por `ts`. Falta que Tomás pegue el token (scopes `im/mpim/channels/groups` read+history) y corra `task auth-slack`. Limitaciones anotadas: no baja respuestas dentro de threads ni menciones fuera de los canales configurados (v1).
-- **Granola** vía su MCP oficial (SDK `mcp` de Python, streamable HTTP, `list_meetings` desde `last_sync_at`; acuerdos donde el responsable es Tomás → tareas, de otros → seguimientos).
+- **Granola** — **BLOQUEADO por acceso** (decisión de Tomás 2026-07-09: esperar token oficial). Verificado que NO hay camino headless estable: el cache local (`~/Library/Application Support/Granola/cache-v6.json`) no guarda `documents` (solo estado de UI, `transcripts: {}`); los tokens en `supabase.json`/`stored-accounts.json` están vencidos (~50 días, el vivo queda solo en el keychain de macOS); y `api.granola.ai` hace fingerprinting del cliente (`{"message":"Unsupported client"}`), o sea reverse-engineering = arms race que se rompe con cada update. **Desbloqueo:** que Tomás consiga un token/endpoint de API o MCP oficial de Granola (estable, no del keychain) y lo pegue; recién ahí construir el conector contra ese camino sancionado (`list_meetings` desde `last_sync_at`; acuerdos donde el responsable es Tomás → tareas, de otros → seguimientos).
 - **HubSpot** (private app token, deals con actividad reciente; + regla en SQL: deal en negociación sin actividad en 5 días → follow-up, sin gastar tokens).
 - Verificar cada uno de punta a punta antes del siguiente. GitHub y Drive quedan para el final (menor volumen).
 
@@ -67,4 +67,4 @@ Rate limiter dedicado por conector (aiolimiter), contador de 2 fallos consecutiv
 
 ## Primer paso sugerido
 
-Slack ya está. Preguntar a Tomás el siguiente del bloque 5: **Granola** (transcripciones, alta señal de acuerdos) o **HubSpot** (deals + regla SQL de inactividad), o si prefiere saltar al planificador diario del bloque 6. Luego implementarlo end-to-end sobre la interfaz existente, con su test, y verificarlo antes de seguir.
+Slack ya está. Granola quedó **bloqueado por acceso** (ver arriba: necesita token oficial de Tomás). El siguiente desbloqueado es **HubSpot** (private-app token, REST estable, sin fingerprinting; incluye la regla SQL de deal en negociación sin actividad en 5 días → follow-up). Alternativa: planificador diario del bloque 6. Implementar end-to-end sobre la interfaz existente, con su test respx, y verificar antes de seguir.
