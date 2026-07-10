@@ -10,7 +10,8 @@ Estás trabajando en **Atlas**, un "Personal Operating System" local-first y ope
 
 - **Repo:** `/Users/enderys/atlas` · **GitHub:** https://github.com/TommyNiuro/atlas (público, cuenta TommyNiuro) · licencia MIT.
 - **Specs (leer antes de tocar):** `docs/Requerimiento_Tecnico_v1.md` (arquitectura completa, 9 agentes, 7 conectores), `docs/Plan_de_Construccion.md` (8 bloques 0-7), `docs/Recomendaciones_Prototipo.md`, y `docs/AUDITORIA-2026-07-09.md` (auditoría + qué se resolvió/deferió).
-- **Estado:** MVP completo (bloques 0 a 4) + auditoría corregida al 100% dentro del alcance "app perfecta" + app nativa. 20 tests en verde. Última release v0.6.0.
+- **Estado:** MVP completo (bloques 0 a 4) + auditoría corregida al 100% dentro del alcance "app perfecta" + app nativa Tauri instalada y verificada funcionando (tareas de demo se ven con score/rank). 20 tests en verde. Release v0.6.0 + un fix posterior (snooze). Sin trabajo a medias.
+- **Última corrección (importante):** el fix de snooze del audit tenía un bug: usaba `due_date` para ocultar tareas de Hoy, así que cualquier tarea con fecha futura desaparecía. Se separó en columna `snoozed_until` (migración `4bb1e5778e0b`): `due_date` es informativo (afecta score, nunca oculta); solo `snoozed_until` oculta de Hoy. Ya arreglado y desplegado.
 
 ## Cómo está desplegado (en la Mac de Tomás)
 
