@@ -58,6 +58,19 @@ tasks:
     cmds:
       - uv run python -m atlas.connectors.sync outlook_cal --auth
 
+  auth-slack:
+    desc: Valida SLACK_TOKEN (.env) y activa la fuente Slack
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync slack --auth
+
+  sync-slack:
+    desc: Sync manual de Slack + pipeline de agentes
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync slack
+      - uv run python -m atlas.agents.orchestrator
+
   sync:
     desc: Sync manual de Outlook Mail + pipeline de agentes
     dir: apps/api
