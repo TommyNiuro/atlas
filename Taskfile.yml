@@ -71,6 +71,32 @@ tasks:
       - uv run python -m atlas.connectors.sync slack
       - uv run python -m atlas.agents.orchestrator
 
+  auth-granola:
+    desc: Valida GRANOLA_API_KEY (.env) y activa la fuente Granola
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync granola --auth
+
+  sync-granola:
+    desc: Sync manual de Granola + pipeline de agentes
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync granola
+      - uv run python -m atlas.agents.orchestrator
+
+  auth-hubspot:
+    desc: Valida HUBSPOT_TOKEN (.env) y activa la fuente HubSpot
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync hubspot --auth
+
+  sync-hubspot:
+    desc: Sync manual de HubSpot + pipeline de agentes
+    dir: apps/api
+    cmds:
+      - uv run python -m atlas.connectors.sync hubspot
+      - uv run python -m atlas.agents.orchestrator
+
   sync:
     desc: Sync manual de Outlook Mail + pipeline de agentes
     dir: apps/api

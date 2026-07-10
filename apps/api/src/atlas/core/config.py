@@ -14,6 +14,8 @@ DATABASE_URL = os.environ.get(
 MS_CLIENT_ID = os.environ.get("MS_CLIENT_ID", "")
 MS_TENANT_ID = os.environ.get("MS_TENANT_ID", "common")
 SLACK_TOKEN = os.environ.get("SLACK_TOKEN", "")
+GRANOLA_API_KEY = os.environ.get("GRANOLA_API_KEY", "")
+HUBSPOT_TOKEN = os.environ.get("HUBSPOT_TOKEN", "")
 VOYAGE_API_KEY = os.environ.get("VOYAGE_API_KEY", "")
 
 REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
